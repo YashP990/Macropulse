@@ -4,6 +4,9 @@
  */
 
 let currentSymbol = null;
+/* Yash Patel, 05/04/2026
+constant key name for storing saved stocks data */
+const SAVED_STOCKS_KEY = "macropulseSavedStocks";
 
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
@@ -220,18 +223,36 @@ function initSaveButton() {
         const normalizedSymbol = currentSymbol.toUpperCase();
         const savedStocks = getStoredSavedStocks();
 
-        if (!savedStocks.includes(normalizedSymbol)) {
+/* Yash Patel, 05/04/2026
+Checks if stocks exists and updats localStorage accordingly*/
+        if (savedStocks.includes(normalizedSymbol)) {
+            const updatedStocks = savedStocks.filter((symbol) => symbol !== normalizedSymbol);
+            localStorage.setItem(SAVED_STOCKS_KEY, JSON.stringify(updatedStocks));
+        } else {
             savedStocks.push(normalizedSymbol);
-            localStorage.setItem("macropulseSavedStocks", JSON.stringify(savedStocks));
+            localStorage.setItem(SAVED_STOCKS_KEY, JSON.stringify(savedStocks));
         }
 
         updateSaveButton(normalizedSymbol);
+    });
+/* Yash Patel, 05/04/2026
+Changes button text to “Unsave” on hover, reverts to “Saved” when mouse doesn't hover*/
+    saveButton.addEventListener("mouseenter", () => {
+        if (saveButton.classList.contains("saved")) {
+            saveButton.textContent = "Unsave";
+        }
+    });
+
+    saveButton.addEventListener("mouseleave", () => {
+        if (saveButton.classList.contains("saved")) {
+            saveButton.textContent = "Saved";
+        }
     });
 }
 
 function getStoredSavedStocks() {
     try {
-        const saved = JSON.parse(localStorage.getItem("macropulseSavedStocks") || "[]");
+        const saved = JSON.parse(localStorage.getItem(SAVED_STOCKS_KEY) || "[]");
         if (!Array.isArray(saved)) return [];
 
         return saved
@@ -241,7 +262,7 @@ function getStoredSavedStocks() {
         return [];
     }
 }
-
+       
 function updateSaveButton(symbol) {
     const saveButton = document.getElementById("save-stock-btn");
     if (!saveButton) return;
