@@ -952,7 +952,8 @@ Hover state with red tint, border color, and text color changes visual emphasis*
 
 .settings-form input[type="text"],
 .settings-form input[type="email"],
-.settings-form input[type="file"] {
+.settings-form input[type="file"],
+.settings-form select {
     width: 100%;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -966,7 +967,8 @@ Hover state with red tint, border color, and text color changes visual emphasis*
     color: var(--text-secondary);
 }
 
-.settings-form input:focus {
+.settings-form input:focus,
+.settings-form select:focus {
     outline: none;
     border-color: var(--accent-blue);
 }

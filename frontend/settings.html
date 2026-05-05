@@ -160,6 +160,45 @@
 
             <div class="settings-panel">
                 <div class="settings-panel-header">
+                    <i class="fa-solid fa-sliders"></i>
+                    <div>
+                        <h2>Dashboard Preferences</h2>
+                        <p>Personalize how the dashboard and stock pages behave when you return.</p>
+                    </div>
+                </div>
+
+                <form class="settings-form" id="dashboard-preferences-form">
+                    <label for="default-stock-symbol">Default Stock Symbol</label>
+                    <input
+                        type="text"
+                        id="default-stock-symbol"
+                        maxlength="10"
+                        placeholder="AAPL"
+                        autocomplete="off"
+                    >
+
+                    <label for="preferred-chart-range">Preferred Chart Range</label>
+                    <select id="preferred-chart-range">
+                        <option value="1mo">1 Month</option>
+                        <option value="3mo">3 Months</option>
+                        <option value="6mo">6 Months</option>
+                        <option value="1y">1 Year</option>
+                        <option value="2y">2 Years</option>
+                        <option value="5y">5 Years</option>
+                    </select>
+
+                    <label class="preference-toggle">
+                        <input type="checkbox" id="show-saved-stocks-first">
+                        <span>
+                            <strong>Show Saved Stocks First</strong>
+                            <small>Move your saved stocks section above popular tickers on the dashboard.</small>
+                        </span>
+                    </label>
+                </form>
+            </div>
+
+            <div class="settings-panel">
+                <div class="settings-panel-header">
                     <i class="fa-solid fa-rotate-left"></i>
                     <div>
                         <h2>Reset Preferences</h2>

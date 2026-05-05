@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initThemeControls();
     initProfileForm();
     initNotificationControls();
+    initDashboardPreferenceControls();
     initResetControls();
     renderSettings(getPreferences());
 });
@@ -86,6 +87,33 @@ function initNotificationControls() {
     });
 }
 
+function initDashboardPreferenceControls() {
+    const defaultStockInput = document.getElementById("default-stock-symbol");
+    const preferredChartRange = document.getElementById("preferred-chart-range");
+    const showSavedStocksFirst = document.getElementById("show-saved-stocks-first");
+
+    defaultStockInput.addEventListener("input", () => {
+        const normalizedSymbol = defaultStockInput.value
+            .toUpperCase()
+            .replace(/[^A-Z.]/g, "")
+            .slice(0, 10);
+
+        if (defaultStockInput.value !== normalizedSymbol) {
+            defaultStockInput.value = normalizedSymbol;
+        }
+
+        savePreferences({ defaultStockSymbol: normalizedSymbol });
+    });
+
+    preferredChartRange.addEventListener("change", () => {
+        savePreferences({ preferredChartRange: preferredChartRange.value });
+    });
+
+    showSavedStocksFirst.addEventListener("change", () => {
+        savePreferences({ showSavedStocksFirst: showSavedStocksFirst.checked });
+    });
+}
+
 function initResetControls() {
     const resetButton = document.getElementById("reset-preferences");
     const resetFeedback = document.getElementById("reset-feedback");
@@ -113,6 +141,9 @@ function renderSettings(preferences) {
     document.getElementById("daily-summary").checked = preferences.dailySummary;
     document.getElementById("signal-alerts").checked = preferences.signalAlerts;
     document.getElementById("weekly-digest").checked = preferences.weeklyDigest;
+    document.getElementById("default-stock-symbol").value = preferences.defaultStockSymbol || "";
+    document.getElementById("preferred-chart-range").value = preferences.preferredChartRange;
+    document.getElementById("show-saved-stocks-first").checked = preferences.showSavedStocksFirst;
     document.getElementById("profile-preview-name").textContent =
         preferences.signedIn ? preferences.name || "Signed in" : "Guest";
     document.getElementById("profile-preview-email").textContent =

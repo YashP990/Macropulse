@@ -15,6 +15,9 @@ const DEFAULT_PREFERENCES = {
     dailySummary: false,
     signalAlerts: true,
     weeklyDigest: false,
+    defaultStockSymbol: "",
+    preferredChartRange: "1y",
+    showSavedStocksFirst: false,
 };
 
 function getPreferences() {

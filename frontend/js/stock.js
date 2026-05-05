@@ -10,7 +10,8 @@ const SAVED_STOCKS_KEY = "macropulseSavedStocks";
 
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
-    currentSymbol = params.get("symbol");
+    const preferences = typeof getPreferences === "function" ? getPreferences() : {};
+    currentSymbol = params.get("symbol") || preferences.defaultStockSymbol;
 
     if (!currentSymbol) {
         showError("No stock symbol provided.");
@@ -21,11 +22,11 @@ call new function with save button*/
 
     document.title = `${currentSymbol.toUpperCase()} - Macropulse`;
     initSaveButton();
-    loadStockPage(currentSymbol);
-    initChartControls();
+    initChartControls(preferences.preferredChartRange || "1y");
+    loadStockPage(currentSymbol, preferences.preferredChartRange || "1y");
 });
 
-async function loadStockPage(symbol) {
+async function loadStockPage(symbol, defaultPeriod = "1y") {
     try {
         // Load stock info first
         const stockData = await getStock(symbol);
@@ -37,7 +38,7 @@ async function loadStockPage(symbol) {
 
         // Load signals, chart, and signal history in parallel
         loadSignals(symbol);
-        loadChart(symbol, "1y");
+        loadChart(symbol, defaultPeriod);
         loadSignalHistory(symbol);
     } catch (err) {
         showError(err.message || `Could not find stock "${symbol}".`);
@@ -199,8 +200,12 @@ async function loadChart(symbol, period) {
     }
 }
 
-function initChartControls() {
+function initChartControls(defaultPeriod = "1y") {
     const buttons = document.querySelectorAll(".chart-btn");
+    buttons.forEach((btn) => {
+        btn.classList.toggle("active", btn.getAttribute("data-period") === defaultPeriod);
+    });
+
     buttons.forEach((btn) => {
         btn.addEventListener("click", () => {
             buttons.forEach((b) => b.classList.remove("active"));

@@ -20,6 +20,7 @@ let searchTimeout = null;
 let selectedSearchIndex = -1;
 
 document.addEventListener("DOMContentLoaded", () => {
+    applyDashboardPreferences();
     initSearch();
     loadTrendingStocks();
     loadWatchlistStocks();
@@ -97,6 +98,21 @@ function initSearch() {
             }
         }
     });
+}
+
+function applyDashboardPreferences() {
+    const preferences = typeof getPreferences === "function" ? getPreferences() : {};
+    const searchInput = document.getElementById("search-input");
+    const watchlistSection = document.getElementById("watchlist-section");
+    const savedStocksSection = document.getElementById("saved-stocks-section");
+
+    if (searchInput && preferences.defaultStockSymbol) {
+        searchInput.value = preferences.defaultStockSymbol;
+    }
+
+    if (watchlistSection && savedStocksSection && preferences.showSavedStocksFirst) {
+        watchlistSection.parentNode.insertBefore(savedStocksSection, watchlistSection);
+    }
 }
 /* Yash Patel, 04/27/2026
 Fetches stock search results, updates dropdown UI, handles loading, no results, and errors.*/
