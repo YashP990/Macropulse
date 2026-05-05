@@ -771,13 +771,19 @@ added details to a button to save a stock*/
     background: rgba(88, 166, 255, 0.12);
 }
 
-.btn-save-stock.saved,
-.btn-save-stock:disabled {
+.btn-save-stock.saved {
     background: rgba(63, 185, 80, 0.12);
     border-color: var(--accent-green);
     color: var(--accent-green);
-    cursor: default;
 }
+/* Yash Patel, 05/04/2026
+Hover state with red tint, border color, and text color changes visual emphasis*/
+.btn-save-stock.saved:hover {
+    background: rgba(248, 81, 73, 0.12);
+    border-color: var(--accent-red);
+    color: var(--accent-red);
+}
+
 
 
 .empty-state {
