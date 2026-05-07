@@ -437,22 +437,30 @@ window.removeSavedStock = removeSavedStock;
 async function loadStockCard(symbol) {
     try {
         const data = await getStock(symbol);
-        const changeClass = data.change >= 0 ? "positive" : "negative";
-        const changeIcon = data.change >= 0 ? "fa-caret-up" : "fa-caret-down";
-        const changeSign = data.change >= 0 ? "+" : "";
+        const price = Number(data.price ?? 0);
+        const change = Number(data.change ?? 0);
+        const hasChangePercent = Number.isFinite(Number(data.changePercent));
+        const changePercent = hasChangePercent ? Number(data.changePercent) : null;
+        const changeClass = change >= 0 ? "positive" : "negative";
+        const changeIcon = change >= 0 ? "fa-caret-up" : "fa-caret-down";
+        const changeSign = change >= 0 ? "+" : "";
+        const stockName = data.name || `${data.symbol} stock`;
+        const changeText = hasChangePercent
+            ? `${changeSign}${change.toFixed(2)} (${changeSign}${changePercent.toFixed(2)}%)`
+            : `${changeSign}${change.toFixed(2)}`;
 
         return `
             <div class="stock-card" onclick="navigateToStock('${data.symbol}')">
                 <div class="stock-header">
                     <div>
                         <div class="ticker">${data.symbol}</div>
-                        <div class="stock-name">${data.name}</div>
+                        <div class="stock-name">${stockName}</div>
                     </div>
                 </div>
-                <div class="price">$${data.price.toFixed(2)}</div>
+                <div class="price">$${price.toFixed(2)}</div>
                 <div class="change ${changeClass}">
                     <i class="fa-solid ${changeIcon}"></i>
-                    ${changeSign}${data.change.toFixed(2)} (${changeSign}${data.changePercent.toFixed(2)}%)
+                    ${changeText}
                 </div>
             </div>
         `;

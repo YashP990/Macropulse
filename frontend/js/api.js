@@ -3,16 +3,44 @@
  * Fetch wrapper for all backend calls with error handling and loading states.
  */
 
-// Person 3 - US14: Updated to versioned /api/v1 endpoint
-const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.apiBase) || `${window.location.origin}/api/v1`;
+// Person 3 - US14: Prefer versioned /api/v1 endpoint, but fall back to legacy /api
+const API_BASES = [];
+const configuredApiBase = window.APP_CONFIG && window.APP_CONFIG.apiBase;
+
+if (configuredApiBase) {
+    API_BASES.push(configuredApiBase);
+} else {
+    API_BASES.push(`${window.location.origin}/api/v1`, `${window.location.origin}/api`);
+}
+
+async function fetchJsonWithFallback(endpoint, options = {}) {
+    let lastError = null;
+
+    for (const base of API_BASES) {
+        const response = await fetch(`${base}${endpoint}`, options);
+
+        if (response.ok) {
+            return response.json();
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(errorData.error || `HTTP ${response.status}`);
+        error.status = response.status;
+        lastError = error;
+
+        // If this base is missing the route entirely, try the next compatible base.
+        if (response.status === 404) {
+            continue;
+        }
+
+        throw error;
+    }
+
+    throw lastError || new Error("Request failed");
+}
 
 async function apiRequest(endpoint) {
-    const response = await fetch(`${API_BASE}${endpoint}`);
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-    }
-    return response.json();
+    return fetchJsonWithFallback(endpoint);
 }
 
 /**
@@ -69,9 +97,7 @@ async function getWatchlist() {
  * POST /api/v1/watchlist/<symbol>
  */
 async function addToWatchlist(symbol) {
-    const response = await fetch(`${API_BASE}/watchlist/${encodeURIComponent(symbol)}`, { method: "POST" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
+    return fetchJsonWithFallback(`/watchlist/${encodeURIComponent(symbol)}`, { method: "POST" });
 }
 
 /**
@@ -79,7 +105,5 @@ async function addToWatchlist(symbol) {
  * DELETE /api/v1/watchlist/<symbol>
  */
 async function removeFromWatchlist(symbol) {
-    const response = await fetch(`${API_BASE}/watchlist/${encodeURIComponent(symbol)}`, { method: "DELETE" });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
+    return fetchJsonWithFallback(`/watchlist/${encodeURIComponent(symbol)}`, { method: "DELETE" });
 }
