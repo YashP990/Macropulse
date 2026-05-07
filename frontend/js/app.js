@@ -5,6 +5,11 @@
 
 const TRENDING_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA"];
 const WATCHLIST_SYMBOLS = ["META", "JPM", "V", "JNJ", "WMT", "DIS"];
+const UNDERPERFORMING_CANDIDATES = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA",
+    "META", "NFLX", "AMD", "INTC", "BA", "NKE",
+    "DIS", "PYPL", "SNAP", "PFE", "WMT", "JPM",
+];
 
 /* Yash Patel, 04/17/2026
 Add new const variable and call function*/
@@ -23,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
     applyDashboardPreferences();
     initSearch();
     loadTrendingStocks();
+    loadUnderperformingStocks();
     loadWatchlistStocks();
     loadSavedStocks();
 });
@@ -384,6 +390,39 @@ async function loadSavedStocks() {
     }
 }
 
+async function loadUnderperformingStocks() {
+    const grid = document.getElementById("underperforming-grid");
+    const loading = document.getElementById("underperforming-loading");
+
+    if (!grid || !loading) return;
+
+    try {
+        const results = await Promise.allSettled(
+            UNDERPERFORMING_CANDIDATES.map((symbol) => getStock(symbol))
+        );
+
+        const decliners = results
+            .filter((result) => result.status === "fulfilled" && result.value)
+            .map((result) => result.value)
+            .filter((stock) => Number(stock.change ?? 0) < 0)
+            .sort((a, b) => Number(a.changePercent ?? a.change ?? 0) - Number(b.changePercent ?? b.change ?? 0))
+            .slice(0, 5);
+
+        loading.style.display = "none";
+
+        if (decliners.length === 5) {
+            grid.innerHTML = decliners.map((stock) => renderStockCard(stock)).join("");
+        } else if (decliners.length > 0) {
+            grid.innerHTML = decliners.map((stock) => renderStockCard(stock)).join("");
+        } else {
+            grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-arrow-trend-down"></i><p>No underperforming stocks are available right now.</p></div>`;
+        }
+    } catch {
+        loading.style.display = "none";
+        grid.innerHTML = `<div class="empty-state"><i class="fa-solid fa-plug-circle-xmark"></i><p>Could not load underperforming stocks.</p></div>`;
+    }
+}
+
 /* Kevin Ngo - US17: Loads a saved stock card with price data and BUY/SELL/HOLD signal badge */
 async function loadSavedStockCard(symbol) {
     try {
@@ -461,34 +500,38 @@ window.removeSavedStock = removeSavedStock;
 async function loadStockCard(symbol) {
     try {
         const data = await getStock(symbol);
-        const price = Number(data.price ?? 0);
-        const change = Number(data.change ?? 0);
-        const hasChangePercent = Number.isFinite(Number(data.changePercent));
-        const changePercent = hasChangePercent ? Number(data.changePercent) : null;
-        const changeClass = change >= 0 ? "positive" : "negative";
-        const changeIcon = change >= 0 ? "fa-caret-up" : "fa-caret-down";
-        const changeSign = change >= 0 ? "+" : "";
-        const stockName = data.name || `${data.symbol} stock`;
-        const changeText = hasChangePercent
-            ? `${changeSign}${change.toFixed(2)} (${changeSign}${changePercent.toFixed(2)}%)`
-            : `${changeSign}${change.toFixed(2)}`;
-
-        return `
-            <div class="stock-card" onclick="navigateToStock('${data.symbol}')">
-                <div class="stock-header">
-                    <div>
-                        <div class="ticker">${data.symbol}</div>
-                        <div class="stock-name">${stockName}</div>
-                    </div>
-                </div>
-                <div class="price">$${price.toFixed(2)}</div>
-                <div class="change ${changeClass}">
-                    <i class="fa-solid ${changeIcon}"></i>
-                    ${changeText}
-                </div>
-            </div>
-        `;
+        return renderStockCard(data);
     } catch {
         return null;
     }
+}
+
+function renderStockCard(data) {
+    const price = Number(data.price ?? 0);
+    const change = Number(data.change ?? 0);
+    const hasChangePercent = Number.isFinite(Number(data.changePercent));
+    const changePercent = hasChangePercent ? Number(data.changePercent) : null;
+    const changeClass = change >= 0 ? "positive" : "negative";
+    const changeIcon = change >= 0 ? "fa-caret-up" : "fa-caret-down";
+    const changeSign = change >= 0 ? "+" : "";
+    const stockName = data.name || `${data.symbol} stock`;
+    const changeText = hasChangePercent
+        ? `${changeSign}${change.toFixed(2)} (${changeSign}${changePercent.toFixed(2)}%)`
+        : `${changeSign}${change.toFixed(2)}`;
+
+    return `
+        <div class="stock-card" onclick="navigateToStock('${data.symbol}')">
+            <div class="stock-header">
+                <div>
+                    <div class="ticker">${data.symbol}</div>
+                    <div class="stock-name">${stockName}</div>
+                </div>
+            </div>
+            <div class="price">$${price.toFixed(2)}</div>
+            <div class="change ${changeClass}">
+                <i class="fa-solid ${changeIcon}"></i>
+                ${changeText}
+            </div>
+        </div>
+    `;
 }
