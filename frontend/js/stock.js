@@ -266,17 +266,6 @@ Checks if stocks exists and updats localStorage accordingly*/
     });
 /* Yash Patel, 05/04/2026
 Changes button text to “Unsave” on hover, reverts to “Saved” when mouse doesn't hover*/
-    saveButton.addEventListener("mouseenter", () => {
-        if (saveButton.classList.contains("saved")) {
-            saveButton.textContent = "Unsave";
-        }
-    });
-
-    saveButton.addEventListener("mouseleave", () => {
-        if (saveButton.classList.contains("saved")) {
-            saveButton.textContent = "Saved";
-        }
-    });
 }
 
 function getStoredSavedStocks() {
@@ -297,8 +286,18 @@ function updateSaveButton(symbol) {
     if (!saveButton) return;
 
     const isSaved = getStoredSavedStocks().includes(String(symbol || "").toUpperCase());
-    saveButton.textContent = isSaved ? "Saved" : "Save";
-    saveButton.disabled = isSaved;
+    const iconClass = isSaved ? "fa-solid fa-star" : "fa-regular fa-star";
+    const buttonLabel = isSaved ? "Starred" : "Star Stock";
+
+    saveButton.innerHTML = `
+        <i class="${iconClass}"></i>
+        <span>${buttonLabel}</span>
+    `;
+    saveButton.setAttribute("aria-pressed", isSaved ? "true" : "false");
+    saveButton.setAttribute(
+        "aria-label",
+        isSaved ? "Remove this stock from your watchlist" : "Add this stock to your watchlist"
+    );
     saveButton.classList.toggle("saved", isSaved);
 }
 

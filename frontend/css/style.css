@@ -777,6 +777,9 @@ Added space below Saved Stocks title*/
 /* Yash Patel, 04/10/2026 
 added details to a button to save a stock*/
 .btn-save-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
     background: transparent;
     border: 1px solid var(--accent-blue);
     color: var(--accent-blue);
@@ -793,12 +796,20 @@ added details to a button to save a stock*/
     border-color: var(--accent-green);
     color: var(--accent-green);
 }
-/* Yash Patel, 05/04/2026
-Hover state with red tint, border color, and text color changes visual emphasis*/
+
+.btn-save-stock i {
+    font-size: 0.9rem;
+}
+
 .btn-save-stock.saved:hover {
-    background: rgba(248, 81, 73, 0.12);
-    border-color: var(--accent-red);
-    color: var(--accent-red);
+    background: rgba(63, 185, 80, 0.18);
+}
+
+.watchlist-empty-state {
+    grid-column: 1 / -1;
+    background: var(--bg-card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-lg);
 }
 
 

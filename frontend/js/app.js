@@ -344,7 +344,12 @@ async function loadSavedStocks() {
     const savedSymbols = getSavedStocks();
 
     if (savedSymbols.length === 0) {
-        grid.innerHTML = "";
+        grid.innerHTML = `
+            <div class="empty-state watchlist-empty-state">
+                <i class="fa-regular fa-star"></i>
+                <p>Star stocks on their detail pages to build your personal watchlist dashboard.</p>
+            </div>
+        `;
         return;
     }
 
@@ -362,10 +367,20 @@ async function loadSavedStocks() {
             grid.innerHTML = html;
             attachRemoveButtons(grid);
         } else {
-            grid.innerHTML = "";
+            grid.innerHTML = `
+                <div class="empty-state watchlist-empty-state">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <p>We couldn't load your watchlist right now. Try opening one of your starred stocks again.</p>
+                </div>
+            `;
         }
     } catch {
-        grid.innerHTML = "";
+        grid.innerHTML = `
+            <div class="empty-state watchlist-empty-state">
+                <i class="fa-solid fa-chart-line"></i>
+                <p>We couldn't load your watchlist right now. Try again in a moment.</p>
+            </div>
+        `;
     }
 }
 
@@ -380,9 +395,16 @@ async function loadSavedStockCard(symbol) {
         if (stockData.status !== "fulfilled" || !stockData.value) return null;
         const data = stockData.value;
 
-        const changeClass = data.change >= 0 ? "positive" : "negative";
-        const changeIcon = data.change >= 0 ? "fa-caret-up" : "fa-caret-down";
-        const changeSign = data.change >= 0 ? "+" : "";
+        const price = Number(data.price ?? 0);
+        const change = Number(data.change ?? 0);
+        const hasChangePercent = Number.isFinite(Number(data.changePercent));
+        const changePercent = hasChangePercent ? Number(data.changePercent) : null;
+        const changeClass = change >= 0 ? "positive" : "negative";
+        const changeIcon = change >= 0 ? "fa-caret-up" : "fa-caret-down";
+        const changeSign = change >= 0 ? "+" : "";
+        const changeText = hasChangePercent
+            ? `${changeSign}${change.toFixed(2)} (${changeSign}${changePercent.toFixed(2)}%)`
+            : `${changeSign}${change.toFixed(2)}`;
 
         let signalBadge = "";
         if (signalData.status === "fulfilled" && signalData.value) {
@@ -390,22 +412,24 @@ async function loadSavedStockCard(symbol) {
             signalBadge = `<span class="signal-badge-sm ${sig}" style="margin-left:auto">${signalData.value.signal}</span>`;
         }
 
+        const stockName = data.name || `${data.symbol} stock`;
+
         return `
             <div class="stock-card" onclick="navigateToStock('${data.symbol}')">
                 <div class="stock-header">
                     <div>
                         <div class="ticker">${data.symbol}</div>
-                        <div class="stock-name">${data.name}</div>
+                        <div class="stock-name">${stockName}</div>
                     </div>
                     ${signalBadge}
                 </div>
-                <div class="price">$${data.price.toFixed(2)}</div>
+                <div class="price">$${price.toFixed(2)}</div>
                 <div class="change ${changeClass}">
                     <i class="fa-solid ${changeIcon}"></i>
-                    ${changeSign}${data.change.toFixed(2)} (${changeSign}${data.changePercent.toFixed(2)}%)
+                    ${changeText}
                 </div>
                 <button class="btn-remove-saved" data-symbol="${data.symbol}" onclick="event.stopPropagation(); removeSavedStock('${data.symbol}')">
-                    <i class="fa-solid fa-xmark"></i> Remove
+                    <i class="fa-solid fa-star"></i> Unstar
                 </button>
             </div>
         `;
