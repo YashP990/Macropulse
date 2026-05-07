@@ -209,6 +209,27 @@ function saveRecentSearch(symbol) {
         JSON.stringify(recent.slice(0, MAX_RECENT_SEARCHES))
     );
 }
+/* Anurag Ravi, 5/7/2026
+Clears recent search history and resets the search dropdown on the dashboard. */
+function initClearRecentSearches() {
+    const clearButton = document.getElementById("clear-recent-searches-btn");
+    const dropdown = document.getElementById("search-dropdown");
+    const input = document.getElementById("search-input");
+
+    if (!clearButton) return;
+
+    clearButton.addEventListener("click", () => {
+        localStorage.removeItem(RECENT_SEARCHES_KEY);
+        selectedSearchIndex = -1;
+
+        if (dropdown) {
+            dropdown.classList.remove("active");
+            dropdown.innerHTML = "";
+        }
+
+        if (input) input.focus();
+    });
+}
 
 function renderRecentSearches(dropdown) {
     const recent = getRecentSearches();
