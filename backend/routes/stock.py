@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, make_response, request
-from services.data_fetcher import get_stock_history, get_stock_info
+from services.data_fetcher import get_historical_dataframe, get_ticker_info_raw
 import re
 
 # Kevin Ngo, 4/11/26 - Stock API routes for Macropulse backend
@@ -95,7 +95,7 @@ def stock_info(symbol):
         )
 
     try:
-        data = get_stock_info(normalized_symbol)
+        data = get_ticker_info_raw(normalized_symbol)
     except Exception:
         return _error(
             f"Unable to load stock data for '{normalized_symbol}'. Please try again.",

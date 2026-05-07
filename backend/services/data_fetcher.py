@@ -141,7 +141,7 @@ def search_stocks(query):
     return results
 
 
-def get_stock_info(symbol):
+def get_ticker_info_raw(symbol):
     # Kevin Ngo, 4/25/26 - get current stock info
     symbol = symbol.upper()
 
@@ -177,7 +177,7 @@ def get_stock_info(symbol):
     }
 
 
-def get_stock_history(symbol, period="1y"):
+def get_historical_dataframe(symbol, period="1y"):
     # Kevin Ngo, 4/25/26 - get historical stock data
     symbol = symbol.upper()
 
