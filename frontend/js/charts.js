@@ -202,3 +202,5 @@ function exportChartDataAsCSV() {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 }
+
+window.exportChartDataAsCSV = exportChartDataAsCSV;

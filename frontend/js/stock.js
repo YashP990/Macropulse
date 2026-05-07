@@ -23,6 +23,7 @@ call new function with save button*/
     document.title = `${currentSymbol.toUpperCase()} - Macropulse`;
     initSaveButton();
     initChartControls(preferences.preferredChartRange || "1y");
+    initChartExport();
     loadStockPage(currentSymbol, preferences.preferredChartRange || "1y");
 });
 
@@ -187,21 +188,26 @@ async function loadChart(symbol, period) {
     /* Anurag Ravi, 04/23/2026
     Show loading overlay while chart data is being fetched */
     showChartLoading("price-chart");
+    setExportButtonState(false);
+
     try {
         const data = await getStockHistory(symbol, period);
         if (data && data.history && data.history.length > 0) {
             renderPriceChart("price-chart", data.history);
+            setExportButtonState(true);
         } else {
             hideChartLoading("price-chart");
+            setExportButtonState(false);
         }
     } catch (err) {
         hideChartLoading("price-chart");
+        setExportButtonState(false);
         console.error("Chart load failed:", err);
     }
 }
 
 function initChartControls(defaultPeriod = "1y") {
-    const buttons = document.querySelectorAll(".chart-btn");
+    const buttons = document.querySelectorAll(".chart-btn[data-period]");
     buttons.forEach((btn) => {
         btn.classList.toggle("active", btn.getAttribute("data-period") === defaultPeriod);
     });
@@ -214,6 +220,24 @@ function initChartControls(defaultPeriod = "1y") {
             if (currentSymbol) loadChart(currentSymbol, period);
         });
     });
+}
+
+function initChartExport() {
+    const exportButton = document.getElementById("export-chart-btn");
+    if (!exportButton) return;
+
+    exportButton.addEventListener("click", () => {
+        if (typeof window.exportChartDataAsCSV === "function") {
+            window.exportChartDataAsCSV();
+        }
+    });
+}
+
+function setExportButtonState(enabled) {
+    const exportButton = document.getElementById("export-chart-btn");
+    if (!exportButton) return;
+
+    exportButton.disabled = !enabled;
 }
 
 /* Yash Patel, 04/17/2026
