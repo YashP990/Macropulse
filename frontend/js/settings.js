@@ -7,6 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initProfileForm();
     initNotificationControls();
     initDashboardPreferenceControls();
+    initPrivacyPreferenceControls();
     initResetControls();
     renderSettings(getPreferences());
 });
@@ -114,9 +115,35 @@ function initDashboardPreferenceControls() {
     });
 }
 
+
+function initPrivacyPreferenceControls() {
+    const privacyMap = {
+        "private-mode": "privateMode",
+        "hide-profile-name": "hideProfileName",
+        "hide-profile-email": "hideProfileEmail",
+    };
+    const clearSavedStocksButton = document.getElementById("clear-saved-stocks");
+    const privacyFeedback = document.getElementById("privacy-feedback");
+
+    Object.entries(privacyMap).forEach(([inputId, preferenceKey]) => {
+        const input = document.getElementById(inputId);
+
+        input.addEventListener("change", () => {
+            savePreferences({ [preferenceKey]: input.checked });
+            renderSettings(getPreferences());
+        });
+    });
+
+    clearSavedStocksButton.addEventListener("click", () => {
+        localStorage.removeItem("macropulseSavedStocks");
+        privacyFeedback.textContent = "Saved stocks cleared from this browser.";
+        privacyFeedback.classList.add("is-visible");
+    });
+}
 function initResetControls() {
     const resetButton = document.getElementById("reset-preferences");
     const resetFeedback = document.getElementById("reset-feedback");
+    const privacyFeedback = document.getElementById("privacy-feedback");
     const imageInput = document.getElementById("profile-image-input");
 
     resetButton.addEventListener("click", () => {
@@ -130,6 +157,7 @@ function initResetControls() {
 
 function renderSettings(preferences) {
     const resetFeedback = document.getElementById("reset-feedback");
+    const privacyFeedback = document.getElementById("privacy-feedback");
 
     document.querySelectorAll("[data-theme-option]").forEach((button) => {
         button.classList.toggle("active", button.dataset.themeOption === preferences.theme);
@@ -144,15 +172,27 @@ function renderSettings(preferences) {
     document.getElementById("default-stock-symbol").value = preferences.defaultStockSymbol || "";
     document.getElementById("preferred-chart-range").value = preferences.preferredChartRange;
     document.getElementById("show-saved-stocks-first").checked = preferences.showSavedStocksFirst;
+    document.getElementById("private-mode").checked = preferences.privateMode;
+    document.getElementById("hide-profile-name").checked = preferences.hideProfileName;
+    document.getElementById("hide-profile-email").checked = preferences.hideProfileEmail;
     document.getElementById("profile-preview-name").textContent =
-        preferences.signedIn ? preferences.name || "Signed in" : "Guest";
+        preferences.privateMode || preferences.hideProfileName
+            ? "Private Profile"
+            : preferences.signedIn ? preferences.name || "Signed in" : "Guest";
     document.getElementById("profile-preview-email").textContent =
-        preferences.signedIn ? preferences.email || "No email saved" : "Not signed in";
+        preferences.privateMode || preferences.hideProfileEmail
+            ? "Email hidden"
+            : preferences.signedIn ? preferences.email || "No email saved" : "Not signed in";
 
     const previewImage = document.getElementById("profile-preview-image");
     const previewInitials = document.getElementById("profile-preview-initials");
 
-    if (preferences.profileImage) {
+    if (preferences.privateMode) {
+        previewImage.removeAttribute("src");
+        previewImage.hidden = true;
+        previewInitials.hidden = false;
+        previewInitials.textContent = "P";
+    } else if (preferences.profileImage) {
         previewImage.src = preferences.profileImage;
         previewImage.hidden = false;
         previewInitials.hidden = true;
@@ -166,5 +206,10 @@ function renderSettings(preferences) {
     if (resetFeedback) {
         resetFeedback.textContent = "";
         resetFeedback.classList.remove("is-visible");
+    }
+
+    if (privacyFeedback) {
+        privacyFeedback.textContent = "";
+        privacyFeedback.classList.remove("is-visible");
     }
 }

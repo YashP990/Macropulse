@@ -774,6 +774,16 @@ Added space below Saved Stocks title*/
     border-color: var(--accent-blue);
 }
 
+.btn-danger {
+    background: rgba(248, 81, 73, 0.12);
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+}
+
+.btn-danger:hover {
+    background: rgba(248, 81, 73, 0.18);
+}
+
 /* Yash Patel, 04/10/2026 
 added details to a button to save a stock*/
 .btn-save-stock {
@@ -1045,6 +1055,15 @@ added details to a button to save a stock*/
 .preference-toggle small {
     color: var(--text-secondary);
     font-size: 0.84rem;
+}
+
+.privacy-data-actions {
+    display: grid;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
 }
 
 .reset-preferences-card {
