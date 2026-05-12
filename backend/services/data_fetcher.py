@@ -1,215 +1,268 @@
 # Author: Kevin Ngo, 4/25/26
-# Stock data pipeline with caching, API integration, and mock fallback support.
+# Mubashir - US-0: Removed global yfinance availability flag and all mock fallbacks.
+# Real data only — if yfinance fails the caller gets an exception and the route returns an HTTP error.
+# Added get_historical_dataframe (returns DataFrame for strategies),
+# get_stock_history_dict (returns serializable dict for API routes),
+# and get_ticker_fundamentals (full info dict for factor_model and fundamentals endpoint).
 
 import os
 import time
-import numpy as np
-import pandas as pd
-from datetime import datetime, timedelta
+import logging
+import requests
 
+import yfinance as yf
 
-# Kevin Ngo, 4/25/26 - in-memory cache storage for API responses
+logger = logging.getLogger(__name__)
+
 _cache = {}
-
-# Kevin Ngo, 4/25/26 - cache expiration time (seconds)
 _DEFAULT_TTL = int(os.environ.get("CACHE_TTL", 300))
-
-# Kevin Ngo, 4/25/26 - timeout for external API requests
 _REQUEST_TIMEOUT = int(os.environ.get("REQUEST_TIMEOUT", 10))
 
-# Kevin Ngo, 4/25/26 - tracks whether Yahoo Finance is available
-_yfinance_available = None
+# Shared session with browser-like headers to reduce Yahoo Finance 429s
+_session = requests.Session()
+_session.headers.update({
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.5",
+})
 
 
 def _cache_get(key, ttl=_DEFAULT_TTL):
-    # Kevin Ngo, 4/25/26 - retrieve cached value if still valid
     if key in _cache:
         ts, data = _cache[key]
-
         if time.time() - ts < ttl:
             return data
-
         del _cache[key]
-
     return None
 
 
 def _cache_set(key, data):
-    # Kevin Ngo, 4/25/26 - store value in cache with timestamp
     _cache[key] = (time.time(), data)
 
 
-def _check_yfinance():
-    # Kevin Ngo, 4/25/26 - checks if Yahoo Finance API is working
-    global _yfinance_available
-
-    if _yfinance_available is not None:
-        return _yfinance_available
-
-    try:
-        import yfinance as yf
-
-        ticker = yf.Ticker("AAPL")
-        hist = ticker.history(period="5d", timeout=_REQUEST_TIMEOUT)
-
-        _yfinance_available = not hist.empty
-
-    except Exception:
-        _yfinance_available = False
-
-    return _yfinance_available
+def _is_rate_limited(exc):
+    msg = str(exc).lower()
+    return "429" in msg or "too many requests" in msg
 
 
-# Kevin Ngo, 4/25/26 - fallback dataset when API is unavailable
-_MOCK_STOCKS = {
-    "AAPL": {"name": "Apple Inc.", "price": 189.50, "prev_close": 187.20, "volume": 54000000},
-    "MSFT": {"name": "Microsoft Corp.", "price": 415.30, "prev_close": 411.80, "volume": 22000000},
-    "GOOGL": {"name": "Alphabet Inc.", "price": 153.80, "prev_close": 152.10, "volume": 28000000},
-}
+def _yf_ticker(symbol):
+    """Return a yfinance Ticker using the shared session."""
+    t = yf.Ticker(symbol)
+    t.session = _session
+    return t
 
 
-def _generate_mock_history(mock, period="1y"):
-    # Kevin Ngo, 4/25/26 - generates simulated historical stock data
-    period_days = {"1mo": 22, "3mo": 63, "6mo": 126, "1y": 252}
-    days = period_days.get(period, 252)
-
-    np.random.seed(hash(mock["name"]) % 2**31)
-
-    base_price = mock["price"]
-    returns = np.random.normal(0.0003, 0.015, days)
-
-    prices = np.zeros(days)
-    prices[-1] = base_price
-
-    for i in range(days - 2, -1, -1):
-        prices[i] = prices[i + 1] / (1 + returns[i + 1])
-
-    records = []
-    start_date = datetime.now() - timedelta(days=days)
-
-    trading_day = 0
-    current = start_date
-
-    while trading_day < days:
-        if current.weekday() < 5:
-            p = prices[trading_day]
-
-            records.append({
-                "date": current.strftime("%Y-%m-%d"),
-                "open": round(p * 0.99, 2),
-                "high": round(p * 1.01, 2),
-                "low": round(p * 0.98, 2),
-                "close": round(p, 2),
-                "volume": int(mock["volume"] * (0.8 + np.random.random() * 0.4)),
-            })
-
-            trading_day += 1
-
-        current += timedelta(days=1)
-
-    return records
-
-
-def search_stocks(query):
-    # Kevin Ngo, 4/25/26 - search stocks using API or fallback
-    results = []
-
-    if _check_yfinance():
+def _yf_history_with_retry(symbol, period, max_retries=3):
+    """Fetch yfinance history with exponential backoff on 429."""
+    delay = 2
+    last_exc = None
+    for attempt in range(max_retries):
         try:
-            import yfinance as yf
-
-            search = yf.Search(query, max_results=5)
-
-            if hasattr(search, "quotes"):
-                for q in search.quotes:
-                    results.append({
-                        "symbol": q.get("symbol"),
-                        "name": q.get("shortname", q.get("symbol")),
-                    })
-
-        except Exception:
-            pass
-
-    if not results:
-        for sym, data in _MOCK_STOCKS.items():
-            if query.upper() in sym:
-                results.append({
-                    "symbol": sym,
-                    "name": data["name"]
-                })
-
-    return results
-
-
-def get_ticker_info_raw(symbol):
-    # Kevin Ngo, 4/25/26 - get current stock info
-    symbol = symbol.upper()
-
-    if _check_yfinance():
-        try:
-            import yfinance as yf
-            ticker = yf.Ticker(symbol)
-
-            fi = ticker.fast_info
-
-            price = fi.last_price
-            prev = fi.previous_close or 0
-
-            return {
-                "symbol": symbol,
-                "price": round(price, 2),
-                "change": round(price - prev, 2) if prev else 0,
-                "changePercent": round(((price - prev) / prev) * 100, 2) if prev else 0,
-            }
-
-        except Exception:
-            pass
-
-    mock = _MOCK_STOCKS.get(symbol)
-
-    if not mock:
-        return None
-
-    return {
-        "symbol": symbol,
-        "price": mock["price"],
-        "change": mock["price"] - mock["prev_close"],
-    }
+            return _yf_ticker(symbol).history(period=period, timeout=_REQUEST_TIMEOUT)
+        except Exception as e:
+            last_exc = e
+            if _is_rate_limited(e):
+                logger.warning(
+                    "Rate limited fetching %s history (attempt %d/%d), waiting %ds",
+                    symbol, attempt + 1, max_retries, delay,
+                )
+                time.sleep(delay)
+                delay *= 2
+            else:
+                raise
+    raise last_exc
 
 
 def get_historical_dataframe(symbol, period="1y"):
-    # Kevin Ngo, 4/25/26 - get historical stock data
+    """Return a pandas DataFrame of OHLCV data for use by strategy calculations."""
     symbol = symbol.upper()
+    cache_key = f"df_{symbol}_{period}"
 
-    if _check_yfinance():
-        try:
-            import yfinance as yf
-            ticker = yf.Ticker(symbol)
+    cached = _cache_get(cache_key, ttl=600)
+    if cached is not None:
+        return cached
 
-            hist = ticker.history(period=period)
+    hist = _yf_history_with_retry(symbol, period)
 
-            if not hist.empty:
-                return {
-                    "symbol": symbol,
-                    "history": [
-                        {
-                            "date": str(i.date()),
-                            "open": row["Open"],
-                            "close": row["Close"],
-                        }
-                        for i, row in hist.iterrows()
-                    ]
-                }
+    if hist is None or hist.empty:
+        raise ValueError(f"No historical data returned for {symbol}")
 
-        except Exception:
-            pass
+    _cache_set(cache_key, hist)
+    return hist
 
-    mock = _MOCK_STOCKS.get(symbol)
 
-    if not mock:
+def get_stock_history_dict(symbol, period="1y"):
+    """Return serializable history dict for API routes."""
+    symbol = symbol.upper()
+    cache_key = f"hist_dict_{symbol}_{period}"
+
+    cached = _cache_get(cache_key, ttl=300)
+    if cached is not None:
+        return cached
+
+    hist = _yf_history_with_retry(symbol, period)
+
+    if hist is None or hist.empty:
         return None
 
-    return {
-        "symbol": symbol,
-        "history": _generate_mock_history(mock, period)
-    }
+    records = []
+    for idx, row in hist.iterrows():
+        records.append({
+            "date": str(idx.date()),
+            "open": round(float(row["Open"]), 2),
+            "high": round(float(row["High"]), 2),
+            "low": round(float(row["Low"]), 2),
+            "close": round(float(row["Close"]), 2),
+            "volume": int(row["Volume"]),
+        })
+
+    result = {"symbol": symbol, "history": records}
+    _cache_set(cache_key, result)
+    return result
+
+
+def get_ticker_info_raw(symbol):
+    """Return basic price info: price, change, changePercent."""
+    symbol = symbol.upper()
+    cache_key = f"info_{symbol}"
+
+    cached = _cache_get(cache_key, ttl=60)
+    if cached is not None:
+        return cached
+
+    delay = 2
+    last_exc = None
+    for attempt in range(3):
+        try:
+            fi = _yf_ticker(symbol).fast_info
+            price = fi.last_price
+            prev = fi.previous_close or 0
+            result = {
+                "symbol": symbol,
+                "price": round(float(price), 2),
+                "change": round(float(price - prev), 2) if prev else 0,
+                "changePercent": round(((price - prev) / prev) * 100, 2) if prev else 0,
+            }
+            _cache_set(cache_key, result)
+            return result
+        except Exception as e:
+            last_exc = e
+            if _is_rate_limited(e):
+                logger.warning("Rate limited on info for %s (attempt %d/3), waiting %ds", symbol, attempt + 1, delay)
+                time.sleep(delay)
+                delay *= 2
+            else:
+                break
+
+    logger.exception("Failed to fetch ticker info for %s: %s", symbol, last_exc)
+    return None
+
+
+def get_ticker_fundamentals(symbol):
+    """Return full fundamentals dict from yfinance .info — used by factor_model and /fundamentals endpoint."""
+    symbol = symbol.upper()
+    cache_key = f"fundamentals_{symbol}"
+
+    cached = _cache_get(cache_key, ttl=900)
+    if cached is not None:
+        return cached
+
+    delay = 2
+    last_exc = None
+    for attempt in range(3):
+        try:
+            ticker = _yf_ticker(symbol)
+            info = ticker.info or {}
+
+            try:
+                fi = ticker.fast_info
+                if fi.last_price:
+                    info.setdefault("currentPrice", fi.last_price)
+                    info.setdefault("previousClose", fi.previous_close)
+            except Exception:
+                pass
+
+            _cache_set(cache_key, info)
+            return info
+        except Exception as e:
+            last_exc = e
+            if _is_rate_limited(e):
+                logger.warning("Rate limited on fundamentals for %s (attempt %d/3), waiting %ds", symbol, attempt + 1, delay)
+                time.sleep(delay)
+                delay *= 2
+            else:
+                break
+
+    logger.warning("Failed to fetch fundamentals for %s: %s", symbol, last_exc)
+    return {}
+
+
+def get_ticker_news(symbol):
+    """Return list of recent news articles for a symbol."""
+    symbol = symbol.upper()
+    cache_key = f"news_{symbol}"
+
+    cached = _cache_get(cache_key, ttl=600)
+    if cached is not None:
+        return cached
+
+    try:
+        raw = _yf_ticker(symbol).news or []
+        articles = []
+        for item in raw[:8]:
+            try:
+                articles.append({
+                    "title": item.get("title", ""),
+                    "publisher": item.get("publisher", ""),
+                    "link": item.get("link", ""),
+                    "published": item.get("providerPublishTime", 0),
+                })
+            except Exception:
+                continue
+        _cache_set(cache_key, articles)
+        return articles
+    except Exception:
+        logger.exception("Failed to fetch news for %s", symbol)
+        return []
+
+
+def search_stocks(query):
+    """Search stocks by query string using yfinance Search."""
+    try:
+        search = yf.Search(query, max_results=8)
+        results = []
+        if hasattr(search, "quotes"):
+            for q in search.quotes:
+                sym = q.get("symbol")
+                if sym:
+                    results.append({
+                        "symbol": sym,
+                        "name": q.get("shortname") or q.get("longname") or sym,
+                        "exchange": q.get("exchange", ""),
+                    })
+        return results
+    except Exception as e:
+        if _is_rate_limited(e):
+            logger.warning("Rate limited on search, retrying after 2s")
+            time.sleep(2)
+            try:
+                search = yf.Search(query, max_results=8)
+                results = []
+                if hasattr(search, "quotes"):
+                    for q in search.quotes:
+                        sym = q.get("symbol")
+                        if sym:
+                            results.append({
+                                "symbol": sym,
+                                "name": q.get("shortname") or q.get("longname") or sym,
+                                "exchange": q.get("exchange", ""),
+                            })
+                return results
+            except Exception:
+                pass
+        logger.exception("Failed to search for '%s'", query)
+        return []

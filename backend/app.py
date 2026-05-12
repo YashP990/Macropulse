@@ -3,20 +3,18 @@
 
 import os
 from dotenv import load_dotenv
+load_dotenv()  # Must run before service imports so env vars are available at import time
+
 from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 
+from services.limiter import limiter
 from routes.search import search_bp
 from routes.stock import stock_bp
 from routes.signals import signals_bp
 from routes.history import history_bp
 from routes.watchlist import watchlist_bp
-
-# Kevin Ngo, 4/21/26
-# Load environment variables from a .env file so sensitive config is not hardcoded.
-load_dotenv()
+from routes.screener import screener_bp
 
 # Kevin Ngo, 4/21/26
 # Define the path to the frontend directory for serving static files.
@@ -34,26 +32,18 @@ def create_app():
     allowed_origins = os.environ.get("CORS_ORIGINS", "http://localhost:5000").split(",")
     CORS(app, origins=[o.strip() for o in allowed_origins if o.strip()])
 
-    # Kevin Ngo, 4/21/26
-    # Set up rate limiting to prevent abuse (e.g., too many requests from one IP).
-    # Default limit is controlled via environment variable.
-    rate_limit = os.environ.get("RATE_LIMIT", "60 per minute")
-    limiter = Limiter(
-        get_remote_address,   # Identifies users by IP address
-        app=app,
-        default_limits=[rate_limit],
-        storage_uri="memory://",  # In-memory storage (suitable for development)
-    )
+    # Mubashir - US-C: Init shared limiter with app (instance created in services/limiter.py)
+    limiter.init_app(app)
 
     # Kevin Ngo, 4/21/26
     # Register API route blueprints under the /api/v1 prefix (versioned).
-    # This keeps routes modular and organized.
     # Person 3 - US14: Versioned API under /api/v1/
     app.register_blueprint(search_bp, url_prefix="/api/v1")
     app.register_blueprint(stock_bp, url_prefix="/api/v1")
     app.register_blueprint(signals_bp, url_prefix="/api/v1")
     app.register_blueprint(history_bp, url_prefix="/api/v1")
     app.register_blueprint(watchlist_bp, url_prefix="/api/v1")
+    app.register_blueprint(screener_bp, url_prefix="/api/v1")
 
     # Person 3 - US14: Legacy /api/ routes with deprecation header for backwards compatibility
     app.register_blueprint(search_bp, url_prefix="/api", name="search_legacy")

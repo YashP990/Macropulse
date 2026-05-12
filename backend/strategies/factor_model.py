@@ -1,6 +1,6 @@
 import logging
 import numpy as np
-from services.data_fetcher import get_ticker_info_raw, get_historical_dataframe
+from services.data_fetcher import get_ticker_fundamentals, get_historical_dataframe
 from strategies.config import (
     FACTOR_MIN_PERIODS,
     FACTOR_ROE_CENTER,
@@ -55,8 +55,9 @@ def calculate_factor_model(symbol):
     - Combined multi-factor score from -1 to +1
     """
     try:
-        info = get_ticker_info_raw(symbol)
-        if info is None:
+        # Mubashir - US-0: Use get_ticker_fundamentals so P/E, ROE, margins are populated
+        info = get_ticker_fundamentals(symbol)
+        if not info:
             return None
 
         scores = []
