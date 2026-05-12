@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screener - Macropulse</title>
+    <script>
+        try {
+            const prefs = JSON.parse(localStorage.getItem("macropulsePreferences") || "{}");
+            document.documentElement.setAttribute("data-theme", prefs.theme || "dark");
+        } catch {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">
+                <i class="fa-solid fa-chart-line"></i>
+                Macropulse
+            </a>
+            <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="screener.html" class="active">Screener</a>
+                <a href="settings.html">Settings</a>
+                <a href="settings.html" class="profile-button" data-profile-button aria-label="Open settings">
+                    <span class="profile-avatar">
+                        <img data-profile-image alt="Profile picture" hidden>
+                        <span data-profile-initials>G</span>
+                    </span>
+                    <span data-profile-status>Sign in</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="search-section" style="padding: 2rem 0 1.5rem">
+        <div class="container">
+            <h1>Stock Screener</h1>
+            <p>Scan 35 major stocks and rank them by quantitative signal strength</p>
+        </div>
+    </section>
+
+    <div class="container" style="padding-bottom: 3rem">
+
+        <!-- Controls -->
+        <div class="screener-controls">
+            <button class="btn btn-primary" id="run-screener-btn">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                Run Screener
+            </button>
+
+            <div class="screener-filters">
+                <button class="screener-filter active" data-filter="all">All</button>
+                <button class="screener-filter buy" data-filter="BUY">BUY</button>
+                <button class="screener-filter sell" data-filter="SELL">SELL</button>
+                <button class="screener-filter hold" data-filter="HOLD">HOLD</button>
+            </div>
+
+            <span class="screener-count" id="screener-count"></span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="screener-progress" id="screener-progress" style="display:none">
+            <div class="screener-progress-bar" id="screener-progress-bar"></div>
+            <span id="screener-progress-text">Scanning stocks...</span>
+        </div>
+
+        <!-- Table -->
+        <div class="screener-table-wrapper" id="screener-table-wrapper" style="display:none">
+            <table class="screener-table" id="screener-table">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-col="symbol">Symbol <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="price">Price <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="change">Change <i class="fa-solid fa-sort"></i></th>
+                        <th>Signal</th>
+                        <th class="sortable" data-col="confidence">Confidence <i class="fa-solid fa-sort"></i></th>
+                        <th>Momentum</th>
+                        <th>Mean Rev.</th>
+                        <th>Monte Carlo</th>
+                        <th>Factor</th>
+                    </tr>
+                </thead>
+                <tbody id="screener-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="screener-empty" style="display:none">
+            <i class="fa-solid fa-magnifying-glass-chart" style="font-size:2rem; margin-bottom:0.5rem"></i>
+            <p>Click "Run Screener" to scan stocks.</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="empty-state" id="screener-error" style="display:none; color: var(--accent-red)">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; margin-bottom:0.5rem"></i>
+            <p id="screener-error-msg">Failed to run screener.</p>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            Macropulse &mdash; Quantitative stock signals powered by advanced strategies.
+            Not financial advice.
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/preferences.js"></script>
+    <script src="js/screener.js"></script>
+</body>
+</html>
