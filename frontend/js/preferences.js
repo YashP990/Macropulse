@@ -18,6 +18,9 @@ const DEFAULT_PREFERENCES = {
     defaultStockSymbol: "",
     preferredChartRange: "1y",
     showSavedStocksFirst: false,
+    privateMode: false,
+    hideProfileName: false,
+    hideProfileEmail: false,
 };
 
 function getPreferences() {
@@ -76,7 +79,12 @@ function updateProfileButton(preferences) {
     const statusText = profileButton.querySelector("[data-profile-status]");
 
     if (profileImage && profileInitials) {
-        if (preferences.profileImage) {
+        if (preferences.privateMode) {
+            profileImage.removeAttribute("src");
+            profileImage.hidden = true;
+            profileInitials.hidden = false;
+            profileInitials.textContent = "P";
+        } else if (preferences.profileImage) {
             profileImage.src = preferences.profileImage;
             profileImage.hidden = false;
             profileInitials.hidden = true;
@@ -89,9 +97,11 @@ function updateProfileButton(preferences) {
     }
 
     if (statusText) {
-        statusText.textContent = preferences.signedIn
-            ? preferences.name || "Profile"
-            : "Sign in";
+        statusText.textContent = preferences.privateMode || preferences.hideProfileName
+            ? "Private"
+            : preferences.signedIn
+                ? preferences.name || "Profile"
+                : "Sign in";
     }
 }
 

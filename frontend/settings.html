@@ -200,6 +200,50 @@
 
             <div class="settings-panel">
                 <div class="settings-panel-header">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <div>
+                        <h2>Privacy Preferences</h2>
+                        <p>Control what profile details are shown and manage locally saved stock data.</p>
+                    </div>
+                </div>
+
+                <form class="settings-form" id="privacy-preferences-form">
+                    <label class="preference-toggle">
+                        <input type="checkbox" id="private-mode">
+                        <span>
+                            <strong>Private Mode</strong>
+                            <small>Hide profile identity details in the navigation and preview.</small>
+                        </span>
+                    </label>
+
+                    <label class="preference-toggle">
+                        <input type="checkbox" id="hide-profile-name">
+                        <span>
+                            <strong>Hide Profile Name</strong>
+                            <small>Show a generic profile label instead of your saved name.</small>
+                        </span>
+                    </label>
+
+                    <label class="preference-toggle">
+                        <input type="checkbox" id="hide-profile-email">
+                        <span>
+                            <strong>Hide Profile Email</strong>
+                            <small>Keep your saved email hidden on the Settings page.</small>
+                        </span>
+                    </label>
+
+                    <div class="privacy-data-actions">
+                        <p>Saved stock symbols are stored only in this browser.</p>
+                        <button type="button" class="btn btn-danger" id="clear-saved-stocks">
+                            <i class="fa-solid fa-trash-can"></i>
+                            Clear Saved Stocks
+                        </button>
+                        <p class="settings-feedback" id="privacy-feedback" role="status" aria-live="polite"></p>
+                    </div>
+                </form>
+            </div>
+            <div class="settings-panel">
+                <div class="settings-panel-header">
                     <i class="fa-solid fa-rotate-left"></i>
                     <div>
                         <h2>Reset Preferences</h2>
