@@ -26,6 +26,7 @@
             </a>
             <div class="navbar-links">
                 <a href="index.html" class="active">Dashboard</a>
+                <a href="screener.html">Screener</a>
                 <a href="settings.html">Settings</a>
                 <a href="settings.html" class="profile-button" data-profile-button aria-label="Open settings">
                     <span class="profile-avatar">
@@ -141,6 +142,32 @@
             </div>
             <div class="metrics-grid" id="metrics-grid">
                 <!-- Filled by JS -->
+            </div>
+        </section>
+
+        <!-- Mubashir - US-A: Enriched Fundamentals -->
+        <section class="container">
+            <div class="section-title">
+                <i class="fa-solid fa-building-columns"></i>
+                <span>Fundamentals</span>
+            </div>
+            <div class="metrics-grid" id="fundamentals-grid">
+                <div class="loading-spinner"><i class="fa-solid fa-spinner"></i></div>
+            </div>
+        </section>
+
+        <!-- Mubashir - US-B: News Feed -->
+        <section class="container">
+            <div class="section-title">
+                <i class="fa-solid fa-newspaper"></i>
+                <span>Recent News</span>
+            </div>
+            <div id="news-container">
+                <div class="loading-spinner" id="news-loading">
+                    <i class="fa-solid fa-spinner"></i>
+                    <span>Loading news...</span>
+                </div>
+                <div id="news-list" style="display:none"></div>
             </div>
         </section>
 

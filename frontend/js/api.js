@@ -107,3 +107,18 @@ async function addToWatchlist(symbol) {
 async function removeFromWatchlist(symbol) {
     return fetchJsonWithFallback(`/watchlist/${encodeURIComponent(symbol)}`, { method: "DELETE" });
 }
+
+// Mubashir - US-A: Get enriched fundamentals for the stock detail page
+async function getStockFundamentals(symbol) {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/fundamentals`);
+}
+
+// Mubashir - US-B: Get recent news articles for a stock
+async function getStockNews(symbol) {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/news`);
+}
+
+// Mubashir - US-C: Run stock screener across the universe
+async function getScreener() {
+    return apiRequest(`/screener`);
+}

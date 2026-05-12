@@ -2,7 +2,7 @@
 
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, make_response, request
-from services.data_fetcher import get_historical_dataframe, get_ticker_info_raw
+from services.data_fetcher import get_stock_history_dict, get_ticker_info_raw, get_ticker_fundamentals, get_ticker_news
 import re
 
 # Kevin Ngo, 4/11/26 - Stock API routes for Macropulse backend
@@ -140,7 +140,7 @@ def stock_history(symbol):
         )
 
     try:
-        data = get_stock_history(normalized_symbol, period=period)
+        data = get_stock_history_dict(normalized_symbol, period=period)
     except Exception:
         return _error(
             f"Unable to load price history for '{normalized_symbol}'. Please try again.",
@@ -166,3 +166,60 @@ def stock_history(symbol):
     }
 
     return _response(payload, status=200, cache_seconds=300)
+
+
+@stock_bp.route("/stock/<symbol>/fundamentals")
+def stock_fundamentals(symbol):
+    # Mubashir - US-A: Return enriched fundamentals for the stock detail page
+    normalized_symbol = _normalize_symbol(symbol)
+
+    if not normalized_symbol or not SYMBOL_PATTERN.fullmatch(normalized_symbol):
+        return _error(f"Invalid stock symbol '{symbol}'.", status=400)
+
+    try:
+        info = get_ticker_fundamentals(normalized_symbol)
+    except Exception:
+        return _error(
+            f"Unable to load fundamentals for '{normalized_symbol}'.",
+            status=502,
+            meta=_request_meta(normalized_symbol),
+        )
+
+    payload = {
+        "symbol": normalized_symbol,
+        "trailingEPS": info.get("trailingEps"),
+        "forwardEPS": info.get("forwardEps"),
+        "analystTargetLow": info.get("targetLowPrice"),
+        "analystTargetMedian": info.get("targetMedianPrice"),
+        "analystTargetHigh": info.get("targetHighPrice"),
+        "analystRecommendation": info.get("recommendationKey"),
+        "nextEarningsDate": info.get("earningsTimestamp"),
+        "dividendYield": info.get("dividendYield"),
+        "revenuePerShare": info.get("revenuePerShare"),
+        "profitMargins": info.get("profitMargins"),
+        "returnOnEquity": info.get("returnOnEquity"),
+        "debtToEquity": info.get("debtToEquity"),
+        "meta": _request_meta(normalized_symbol),
+    }
+
+    return _response(payload, status=200, cache_seconds=900)
+
+
+@stock_bp.route("/stock/<symbol>/news")
+def stock_news(symbol):
+    # Mubashir - US-B: Return recent news articles for the stock detail page
+    normalized_symbol = _normalize_symbol(symbol)
+
+    if not normalized_symbol or not SYMBOL_PATTERN.fullmatch(normalized_symbol):
+        return _error(f"Invalid stock symbol '{symbol}'.", status=400)
+
+    articles = get_ticker_news(normalized_symbol)
+
+    payload = {
+        "symbol": normalized_symbol,
+        "count": len(articles),
+        "articles": articles,
+        "meta": _request_meta(normalized_symbol),
+    }
+
+    return _response(payload, status=200, cache_seconds=600)

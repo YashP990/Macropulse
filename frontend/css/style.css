@@ -1181,3 +1181,109 @@ added details to a button to save a stock*/
     font-size: 0.875rem;
     gap: 8px;
 }
+
+/* ===== Mubashir - US-B: News Feed ===== */
+.news-item {
+    display: block;
+    padding: 0.875rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    transition: background var(--transition), border-color var(--transition);
+}
+.news-item:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+}
+.news-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+    line-height: 1.4;
+}
+.news-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.news-publisher { font-weight: 500; color: var(--accent-blue); }
+
+/* ===== Mubashir - US-C: Screener ===== */
+.screener-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.25rem;
+    padding-top: 1rem;
+}
+.screener-filters {
+    display: flex;
+    gap: 0.5rem;
+}
+.screener-filter {
+    padding: 0.35rem 0.9rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all var(--transition);
+}
+.screener-filter.active,
+.screener-filter:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.screener-filter.buy.active { border-color: var(--accent-green); color: var(--accent-green); }
+.screener-filter.sell.active { border-color: var(--accent-red); color: var(--accent-red); }
+.screener-filter.hold.active { border-color: var(--accent-yellow); color: var(--accent-yellow); }
+.screener-count { font-size: 0.8rem; color: var(--text-muted); margin-left: auto; }
+
+.screener-progress {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.75rem 1rem;
+}
+.screener-progress-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--accent-blue);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 0;
+}
+#screener-progress-text { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+
+.screener-table-wrapper { overflow-x: auto; }
+.screener-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+.screener-table th {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-weight: 500;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.screener-table th.sortable { cursor: pointer; user-select: none; }
+.screener-table th.sortable:hover { color: var(--accent-blue); }
+.screener-table td {
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.screener-row:hover td { background: var(--bg-tertiary); }
+.positive { color: var(--accent-green); }
+.negative { color: var(--accent-red); }

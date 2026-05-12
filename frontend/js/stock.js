@@ -37,10 +37,12 @@ async function loadStockPage(symbol, defaultPeriod = "1y") {
         document.getElementById("page-loading").style.display = "none";
         document.getElementById("stock-content").style.display = "block";
 
-        // Load signals, chart, and signal history in parallel
+        // Load signals, chart, history, fundamentals, and news in parallel
         loadSignals(symbol);
         loadChart(symbol, defaultPeriod);
         loadSignalHistory(symbol);
+        loadFundamentals(symbol);
+        loadNews(symbol);
     } catch (err) {
         showError(err.message || `Could not find stock "${symbol}".`);
     }
@@ -346,6 +348,88 @@ function renderSignalHistory(history) {
     }).join("");
 
     listEl.innerHTML = `<div class="history-list">${rows}</div>`;
+}
+
+// ===== Mubashir - US-A: Fundamentals =====
+
+async function loadFundamentals(symbol) {
+    const grid = document.getElementById("fundamentals-grid");
+    if (!grid) return;
+
+    try {
+        const data = await getStockFundamentals(symbol);
+
+        const fmt = (val, prefix = "", suffix = "", decimals = 2) =>
+            val != null ? `${prefix}${parseFloat(val).toFixed(decimals)}${suffix}` : "N/A";
+
+        const fmtDate = (ts) => {
+            if (!ts) return "N/A";
+            return new Date(ts * 1000).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+        };
+
+        const metrics = [
+            { label: "Trailing EPS", value: fmt(data.trailingEPS, "$") },
+            { label: "Forward EPS", value: fmt(data.forwardEPS, "$") },
+            { label: "Analyst Target", value: data.analystTargetMedian ? `$${parseFloat(data.analystTargetMedian).toFixed(2)}` : "N/A" },
+            { label: "Recommendation", value: data.analystRecommendation ? data.analystRecommendation.replace(/_/g, " ").toUpperCase() : "N/A" },
+            { label: "Next Earnings", value: fmtDate(data.nextEarningsDate) },
+            { label: "Dividend Yield", value: data.dividendYield ? `${(data.dividendYield * 100).toFixed(2)}%` : "N/A" },
+            { label: "Profit Margin", value: data.profitMargins ? `${(data.profitMargins * 100).toFixed(2)}%` : "N/A" },
+            { label: "Return on Equity", value: data.returnOnEquity ? `${(data.returnOnEquity * 100).toFixed(1)}%` : "N/A" },
+        ];
+
+        grid.innerHTML = metrics.map(m => `
+            <div class="metric-item">
+                <div class="metric-label">${m.label}</div>
+                <div class="metric-value">${m.value}</div>
+            </div>
+        `).join("");
+    } catch {
+        if (grid) grid.innerHTML = `<div class="empty-state"><p>Fundamentals unavailable.</p></div>`;
+    }
+}
+
+// ===== Mubashir - US-B: News =====
+
+async function loadNews(symbol) {
+    const loadingEl = document.getElementById("news-loading");
+    const listEl = document.getElementById("news-list");
+    if (!loadingEl || !listEl) return;
+
+    try {
+        const data = await getStockNews(symbol);
+        loadingEl.style.display = "none";
+        listEl.style.display = "block";
+
+        if (!data.articles || data.articles.length === 0) {
+            listEl.innerHTML = `<div class="empty-state"><p>No recent news found.</p></div>`;
+            return;
+        }
+
+        const fmtAge = (ts) => {
+            if (!ts) return "";
+            const diff = Math.floor((Date.now() / 1000) - ts);
+            if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+            return `${Math.floor(diff / 86400)}d ago`;
+        };
+
+        listEl.innerHTML = data.articles.map(a => `
+            <a class="news-item" href="${a.link}" target="_blank" rel="noopener noreferrer">
+                <div class="news-title">${a.title}</div>
+                <div class="news-meta">
+                    <span class="news-publisher">${a.publisher}</span>
+                    <span class="news-age">${fmtAge(a.published)}</span>
+                </div>
+            </a>
+        `).join("");
+    } catch {
+        if (loadingEl) loadingEl.style.display = "none";
+        if (listEl) {
+            listEl.style.display = "block";
+            listEl.innerHTML = `<div class="empty-state"><p>News unavailable.</p></div>`;
+        }
+    }
 }
 
 // ===== Helpers =====
