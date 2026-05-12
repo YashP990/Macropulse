@@ -1,4 +1,6 @@
 /* ===== CSS Variables / Design System ===== */
+/* Yash Patel, 05/11/2026
+Define a soft  blue accent color used for subtle UI backgrounds and highlights */
 :root {
     --bg-primary: #0d1117;
     --bg-secondary: #161b22;
@@ -9,6 +11,7 @@
     --text-secondary: #8b949e;
     --text-muted: #6e7681;
     --accent-blue: #58a6ff;
+    --accent-blue-soft: rgba(88, 166, 255, 0.14);
     --accent-green: #3fb950;
     --accent-red: #f85149;
     --accent-yellow: #d29922;
@@ -33,6 +36,7 @@
     --text-secondary: #4b5563;
     --text-muted: #6b7280;
     --accent-blue: #0969da;
+    --accent-blue-soft: rgba(9, 105, 218, 0.1);
     --accent-green: #1a7f37;
     --accent-red: #cf222e;
     --accent-yellow: #9a6700;
@@ -41,6 +45,43 @@
     --sell-bg: rgba(207, 34, 46, 0.1);
     --hold-bg: rgba(154, 103, 0, 0.1);
     --shadow: 0 3px 12px rgba(31, 41, 55, 0.12);
+}
+/* Yash Patel, 05/11/2026
+Defines the color palettes for deuteranopia, protanopia, and tritanopia */
+:root[data-color-blind-mode="deuteranopia"] {
+    --accent-blue: #56b4e9;
+    --accent-blue-soft: rgba(86, 180, 233, 0.16);
+    --accent-green: #0072b2;
+    --accent-red: #d55e00;
+    --accent-yellow: #cc79a7;
+    --accent-purple: #e69f00;
+    --buy-bg: rgba(0, 114, 178, 0.14);
+    --sell-bg: rgba(213, 94, 0, 0.14);
+    --hold-bg: rgba(204, 121, 167, 0.14);
+}
+
+:root[data-color-blind-mode="protanopia"] {
+    --accent-blue: #0072b2;
+    --accent-blue-soft: rgba(0, 114, 178, 0.14);
+    --accent-green: #009e73;
+    --accent-red: #e69f00;
+    --accent-yellow: #cc79a7;
+    --accent-purple: #56b4e9;
+    --buy-bg: rgba(0, 158, 115, 0.14);
+    --sell-bg: rgba(230, 159, 0, 0.14);
+    --hold-bg: rgba(204, 121, 167, 0.14);
+}
+
+:root[data-color-blind-mode="tritanopia"] {
+    --accent-blue: #c65bcf;
+    --accent-blue-soft: rgba(198, 91, 207, 0.16);
+    --accent-green: #00856f;
+    --accent-red: #c43c2f;
+    --accent-yellow: #7b61ff;
+    --accent-purple: #b24a8f;
+    --buy-bg: rgba(0, 133, 111, 0.14);
+    --sell-bg: rgba(196, 60, 47, 0.14);
+    --hold-bg: rgba(123, 97, 255, 0.14);
 }
 
 /* ===== Reset & Base ===== */
@@ -920,8 +961,10 @@ added details to a button to save a stock*/
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
 }
-
-.theme-option {
+/* Yash Patel, 05/11/2026
+Apply color change to both theme and color mode class*/
+.theme-option,
+.color-mode-option {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -937,18 +980,39 @@ added details to a button to save a stock*/
     transition: all var(--transition);
 }
 
+/* Yash Patel, 05/11/2026
+Applies highlighted styling to active theme, hovered, active color mode options */
 .theme-option:hover,
-.theme-option.active {
+.theme-option.active,
+.color-mode-option:hover,
+.color-mode-option.active {
     border-color: var(--accent-blue);
     color: var(--text-primary);
 }
 
-.theme-option.active {
-    background: rgba(88, 166, 255, 0.14);
+.theme-option.active,
+.color-mode-option.active {
+    background: var(--accent-blue-soft);
+}
+/* Yash Patel, 05/11/2026
+Creates a spaced grid layout for the color blindness settings section and toggle options */
+.color-mode-section {
+    display: grid;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
 }
 
-:root[data-theme="light"] .theme-option.active {
-    background: rgba(9, 105, 218, 0.1);
+.color-mode-section h3 {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.color-mode-toggle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
 }
 
 .profile-preview {
@@ -1156,8 +1220,13 @@ added details to a button to save a stock*/
     .chart-export-btn {
         margin-left: 0;
     }
-
+/* Yash Patel, 05/11/2026
+Changes the theme toggle layout to a single-column grid*/
     .theme-toggle {
+        grid-template-columns: 1fr;
+    }
+
+    .color-mode-toggle {
         grid-template-columns: 1fr;
     }
 
