@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Settings - Macropulse</title>
     <script>
+<!-- Yash Patel, 05/14/2026
+    Set the data-color-blind-mode attributes for the website-->
         try {
             const prefs = JSON.parse(localStorage.getItem("macropulsePreferences") || "{}");
             document.documentElement.setAttribute("data-theme", prefs.theme || "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", prefs.colorBlindMode || "default");
         } catch {
             document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", "default");
         }
     </script>
     <link rel="stylesheet" href="css/style.css">
@@ -67,6 +71,29 @@
                         <i class="fa-solid fa-sun"></i>
                         Light
                     </button>
+                </div>
+<!-- Yash Patel, 05/14/2026
+Color-blind mode selection buttons for switching accessibility display settings -->
+                <div class="color-mode-section">
+                    <h3>Color-Blind Mode</h3>
+                    <div class="color-mode-toggle" role="group" aria-label="Color-blind display mode">
+                        <button type="button" class="color-mode-option" data-color-blind-mode="default">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            Default
+                        </button>
+                        <button type="button" class="color-mode-option" data-color-blind-mode="deuteranopia">
+                            <i class="fa-solid fa-eye"></i>
+                            Deuteranopia
+                        </button>
+                        <button type="button" class="color-mode-option" data-color-blind-mode="protanopia">
+                            <i class="fa-solid fa-eye"></i>
+                            Protanopia
+                        </button>
+                        <button type="button" class="color-mode-option" data-color-blind-mode="tritanopia">
+                            <i class="fa-solid fa-eye"></i>
+                            Tritanopia
+                        </button>
+                    </div>
                 </div>
             </div>
 
