@@ -22,6 +22,7 @@ call new function with save button*/
 
     document.title = `${currentSymbol.toUpperCase()} - Macropulse`;
     initSaveButton();
+    initCopyTickerButton();
     initChartControls(preferences.preferredChartRange || "1y");
     initChartExport();
     loadStockPage(currentSymbol, preferences.preferredChartRange || "1y");
@@ -240,6 +241,60 @@ function setExportButtonState(enabled) {
     if (!exportButton) return;
 
     exportButton.disabled = !enabled;
+}
+
+/* Anurag Ravi, 5/14/2026
+Initializes the copy ticker button and shows quick feedback after copying the stock symbol. */
+function initCopyTickerButton() {
+    const copyButton = document.getElementById("copy-ticker-btn");
+    if (!copyButton) return;
+
+    copyButton.addEventListener("click", async () => {
+        const symbol = String(currentSymbol || "").trim().toUpperCase();
+        if (!symbol) return;
+
+        try {
+            await copyTextToClipboard(symbol);
+            showCopyTickerFeedback(copyButton, "Copied", true);
+        } catch {
+            showCopyTickerFeedback(copyButton, "Copy failed", false);
+        }
+    });
+}
+
+function copyTextToClipboard(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text);
+    }
+
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.setAttribute("readonly", "");
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        if (!document.execCommand("copy")) {
+            throw new Error("Copy command failed");
+        }
+        return Promise.resolve();
+    } finally {
+        document.body.removeChild(textarea);
+    }
+}
+
+function showCopyTickerFeedback(button, message, copied) {
+    const originalHtml = button.dataset.originalHtml || button.innerHTML;
+    button.dataset.originalHtml = originalHtml;
+    const iconClass = copied ? "fa-solid fa-check" : "fa-solid fa-triangle-exclamation";
+    button.innerHTML = `<i class="${iconClass}"></i><span>${message}</span>`;
+
+    window.clearTimeout(button.copyFeedbackTimeout);
+    button.copyFeedbackTimeout = window.setTimeout(() => {
+        button.innerHTML = originalHtml;
+    }, 1500);
 }
 
 /* Yash Patel, 04/17/2026
