@@ -1,9 +1,11 @@
 /**
  * Settings page behavior for theme, sign-in state, and profile image.
  */
-
+/* Yash Patel, 05/14/2026
+Initializes color-blind mode control buttons and functionality*/
 document.addEventListener("DOMContentLoaded", () => {
     initThemeControls();
+    initColorBlindModeControls();
     initProfileForm();
     initNotificationControls();
     initDashboardPreferenceControls();
@@ -16,6 +18,16 @@ function initThemeControls() {
     document.querySelectorAll("[data-theme-option]").forEach((button) => {
         button.addEventListener("click", () => {
             savePreferences({ theme: button.dataset.themeOption });
+            renderSettings(getPreferences());
+        });
+    });
+}
+/* Yash Patel, 05/14/2026
+Adds click events for updating and saving selected color-blind display mode*/
+function initColorBlindModeControls() {
+    document.querySelectorAll("[data-color-blind-mode]").forEach((button) => {
+        button.addEventListener("click", () => {
+            savePreferences({ colorBlindMode: button.dataset.colorBlindMode });
             renderSettings(getPreferences());
         });
     });
@@ -161,6 +173,11 @@ function renderSettings(preferences) {
 
     document.querySelectorAll("[data-theme-option]").forEach((button) => {
         button.classList.toggle("active", button.dataset.themeOption === preferences.theme);
+    });
+/* Yash Patel, 05/14/2026
+Highlights the currently selected color-blind mode button in the settings menu*/
+    document.querySelectorAll("[data-color-blind-mode]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.colorBlindMode === preferences.colorBlindMode);
     });
 
     document.getElementById("profile-name").value = preferences.name || "";
