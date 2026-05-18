@@ -5,11 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Screener - Macropulse</title>
     <script>
+<!-- Yash Patel, 05/18/2026
+Apply color-blind display mode on the website-->
         try {
             const prefs = JSON.parse(localStorage.getItem("macropulsePreferences") || "{}");
             document.documentElement.setAttribute("data-theme", prefs.theme || "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", prefs.colorBlindMode || "default");
         } catch {
             document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", "default");
         }
     </script>
     <link rel="stylesheet" href="css/style.css">

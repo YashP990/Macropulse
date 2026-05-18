@@ -4,9 +4,11 @@
  */
 
 const MACROPULSE_PREFS_KEY = "macropulsePreferences";
-
+/* Yash Patel, 05/18/2026
+Default color-blind mode setting for the website */
 const DEFAULT_PREFERENCES = {
     theme: "dark",
+    colorBlindMode: "default",
     signedIn: false,
     name: "",
     email: "",
@@ -54,9 +56,12 @@ function resetPreferences() {
     window.dispatchEvent(new CustomEvent("macropulsePreferencesChanged", { detail: nextPreferences }));
     return nextPreferences;
 }
-
+/* Yash Patel, 05/18/2026
+Set the website’s active color-blind display mode preference
+*/
 function applyPreferences(preferences = getPreferences()) {
     document.documentElement.setAttribute("data-theme", preferences.theme);
+    document.documentElement.setAttribute("data-color-blind-mode", preferences.colorBlindMode || "default");
     updateProfileButton(preferences);
 }
 

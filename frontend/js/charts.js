@@ -60,13 +60,14 @@ function renderPriceChart(canvasId, historyData) {
     const labels = historyData.map((d) => d.date);
     const closePrices = historyData.map((d) => d.close);
     const volumes = historyData.map((d) => d.volume);
-
+/* Yash Patel,  05/18/2026
+create a transparent version of the line color for chart fill styling*/
     // Determine price color (green if up overall, red if down)
     const firstPrice = closePrices[0];
     const lastPrice = closePrices[closePrices.length - 1];
     const isUp = lastPrice >= firstPrice;
     const lineColor = isUp ? accentGreen : accentRed;
-    const fillColor = isUp ? "rgba(63, 185, 80, 0.08)" : "rgba(248, 81, 73, 0.08)";
+    const fillColor = hexToRgba(lineColor, 0.1);
 
     // Scale volumes to fit in bottom portion of chart
     const maxPrice = Math.max(...closePrices);
