@@ -28,3 +28,6 @@ desktop.ini
 # Environment variables
 .env
 .env.local
+
+# SQLite database (auto-created at runtime)
+backend/data/*.db

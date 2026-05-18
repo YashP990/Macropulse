@@ -9,12 +9,14 @@ from flask import Flask, jsonify, send_from_directory
 from flask_cors import CORS
 
 from services.limiter import limiter
+from services.db import init_db
 from routes.search import search_bp
 from routes.stock import stock_bp
 from routes.signals import signals_bp
 from routes.history import history_bp
 from routes.watchlist import watchlist_bp
 from routes.screener import screener_bp
+from routes.backtest import backtest_bp
 
 # Kevin Ngo, 4/21/26
 # Define the path to the frontend directory for serving static files.
@@ -44,6 +46,7 @@ def create_app():
     app.register_blueprint(history_bp, url_prefix="/api/v1")
     app.register_blueprint(watchlist_bp, url_prefix="/api/v1")
     app.register_blueprint(screener_bp, url_prefix="/api/v1")
+    app.register_blueprint(backtest_bp, url_prefix="/api/v1")
 
     # Person 3 - US14: Legacy /api/ routes with deprecation header for backwards compatibility
     app.register_blueprint(search_bp, url_prefix="/api", name="search_legacy")
@@ -87,6 +90,7 @@ if __name__ == "__main__":
     # Kevin Ngo, 4/21/26
     # Initialize the app using the factory function.
     app = create_app()
+    init_db()
 
     # Kevin Ngo, 4/21/26
     # Enable or disable debug mode based on environment variable.
