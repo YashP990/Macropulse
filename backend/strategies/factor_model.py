@@ -44,7 +44,7 @@ def _score_earnings_growth(info):
     return None
 
 
-def calculate_factor_model(symbol):
+def calculate_factor_model(symbol, df=None):
     """
     Multi-Factor Model with 5 scoring dimensions:
     - Value factor (25%): P/E ratio scoring with continuous sigmoid curve
@@ -53,6 +53,9 @@ def calculate_factor_model(symbol):
     - Volatility factor (20%): Low-vol premium with downside risk adjustment
     - Size factor (15%): Market cap stability premium
     - Combined multi-factor score from -1 to +1
+
+    df: optional pre-sliced DataFrame for backtesting (used for volatility factor only;
+        fundamentals still reflect current values).
     """
     try:
         # Mubashir - US-0: Use get_ticker_fundamentals so P/E, ROE, margins are populated
@@ -106,7 +109,8 @@ def calculate_factor_model(symbol):
             details_parts.append("quality N/A")
 
         # --- Volatility Factor: Low-Vol Premium with Downside Risk ---
-        df = get_historical_dataframe(symbol, period="1y")
+        if df is None:
+            df = get_historical_dataframe(symbol, period="1y")
         if df is not None and len(df) >= FACTOR_MIN_PERIODS:
             daily_returns = df["Close"].pct_change().dropna().values
             annual_vol = np.std(daily_returns, ddof=1) * np.sqrt(252)

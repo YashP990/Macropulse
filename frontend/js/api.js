@@ -69,14 +69,6 @@ async function getStockHistory(symbol, period = "1y") {
 }
 
 /**
- *
- * GET /api/v1/signals/<symbol>
- */
-async function getSignals(symbol) {
-    return apiRequest(`/signals/${encodeURIComponent(symbol)}`);
-}
-
-/**
  * Get signal history for a stock.
  * GET /api/v1/signals/<symbol>/history
  */
@@ -121,4 +113,26 @@ async function getStockNews(symbol) {
 // Mubashir - US-C: Run stock screener across the universe
 async function getScreener() {
     return apiRequest(`/screener`);
+}
+
+// Mubashir - US-E: Run strategy backtest for a symbol
+async function getBacktest(symbol, period = "2y") {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/backtest?period=${period}`);
+}
+
+// Mubashir - US-F: Get signals with optional custom strategy weights from preferences
+async function getSignals(symbol) {
+    const prefs = typeof getPreferences === "function" ? getPreferences() : {};
+    const weights = prefs.strategyWeights;
+    let endpoint = `/signals/${encodeURIComponent(symbol)}`;
+
+    if (weights && typeof weights === "object" && Object.keys(weights).length === 4) {
+        const params = new URLSearchParams();
+        for (const [key, val] of Object.entries(weights)) {
+            params.set(`w_${key}`, (val / 100).toFixed(4));
+        }
+        endpoint += `?${params.toString()}`;
+    }
+
+    return fetchJsonWithFallback(endpoint);
 }

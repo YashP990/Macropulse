@@ -175,6 +175,31 @@ Apply color-blind display mode on the website-->
             </div>
         </section>
 
+        <!-- Mubashir - US-E: Backtest Results -->
+        <section class="container">
+            <div class="section-title">
+                <i class="fa-solid fa-flask"></i>
+                <span>Backtest Results</span>
+            </div>
+            <div id="backtest-container">
+                <div class="loading-spinner" id="backtest-loading">
+                    <i class="fa-solid fa-spinner"></i>
+                    <span>Running backtest...</span>
+                </div>
+                <div id="backtest-content" style="display:none">
+                    <div class="backtest-controls">
+                        <button class="chart-btn backtest-period-btn active" data-period="2y">2Y</button>
+                        <button class="chart-btn backtest-period-btn" data-period="1y">1Y</button>
+                    </div>
+                    <div class="backtest-summary" id="backtest-summary"></div>
+                    <div class="strategies-grid" id="backtest-strategies-grid"></div>
+                </div>
+                <div id="backtest-empty" style="display:none">
+                    <div class="empty-state"><p>Not enough historical data to run backtest.</p></div>
+                </div>
+            </div>
+        </section>
+
         <!-- Price Chart -->
         <section class="container chart-section">
             <div class="section-title">

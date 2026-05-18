@@ -38,12 +38,13 @@ async function loadStockPage(symbol, defaultPeriod = "1y") {
         document.getElementById("page-loading").style.display = "none";
         document.getElementById("stock-content").style.display = "block";
 
-        // Load signals, chart, history, fundamentals, and news in parallel
+        // Load signals, chart, history, fundamentals, news, and backtest in parallel
         loadSignals(symbol);
         loadChart(symbol, defaultPeriod);
         loadSignalHistory(symbol);
         loadFundamentals(symbol);
         loadNews(symbol);
+        loadBacktest(symbol, "2y");
     } catch (err) {
         showError(err.message || `Could not find stock "${symbol}".`);
     }
@@ -483,6 +484,93 @@ async function loadNews(symbol) {
         if (listEl) {
             listEl.style.display = "block";
             listEl.innerHTML = `<div class="empty-state"><p>News unavailable.</p></div>`;
+        }
+    }
+}
+
+// ===== Mubashir - US-E: Backtest =====
+
+async function loadBacktest(symbol, period = "2y") {
+    const loadingEl = document.getElementById("backtest-loading");
+    const contentEl = document.getElementById("backtest-content");
+    const emptyEl = document.getElementById("backtest-empty");
+    if (!loadingEl || !contentEl || !emptyEl) return;
+
+    // Wire period toggle buttons
+    document.querySelectorAll(".backtest-period-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".backtest-period-btn").forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            loadBacktest(symbol, btn.getAttribute("data-period"));
+        });
+    });
+
+    loadingEl.style.display = "flex";
+    contentEl.style.display = "none";
+    emptyEl.style.display = "none";
+
+    try {
+        const data = await getBacktest(symbol, period);
+
+        loadingEl.style.display = "none";
+
+        if (data.insufficient_data) {
+            emptyEl.style.display = "block";
+            return;
+        }
+
+        contentEl.style.display = "block";
+
+        // Summary bar
+        const summaryEl = document.getElementById("backtest-summary");
+        const overallStr = data.overall_accuracy != null ? `${data.overall_accuracy}%` : "N/A";
+        summaryEl.innerHTML = `
+            <div class="backtest-stat">
+                <div class="backtest-stat-label">Overall Accuracy</div>
+                <div class="backtest-stat-value">${overallStr}</div>
+            </div>
+            <div class="backtest-stat">
+                <div class="backtest-stat-label">Windows Tested</div>
+                <div class="backtest-stat-value">${data.total_windows}</div>
+            </div>
+            <div class="backtest-stat">
+                <div class="backtest-stat-label">Window Size</div>
+                <div class="backtest-stat-value">${data.window_days}d</div>
+            </div>
+        `;
+
+        // Per-strategy cards
+        const strategyLabels = {
+            momentum: { label: "Momentum", icon: "fa-rocket" },
+            mean_reversion: { label: "Mean Reversion", icon: "fa-arrows-left-right" },
+            monte_carlo: { label: "Monte Carlo", icon: "fa-dice" },
+            factor_model: { label: "Factor Model", icon: "fa-scale-balanced" },
+        };
+
+        const gridEl = document.getElementById("backtest-strategies-grid");
+        gridEl.innerHTML = Object.entries(data.strategies).map(([key, stats]) => {
+            const meta = strategyLabels[key] || { label: key, icon: "fa-chart-simple" };
+            const accStr = stats.accuracy != null ? `${stats.accuracy}%` : "N/A";
+            const accClass = stats.accuracy == null ? "" : stats.accuracy >= 55 ? "positive" : stats.accuracy >= 45 ? "" : "negative";
+            return `
+                <div class="strategy-card">
+                    <div class="strategy-header">
+                        <span class="strategy-name">
+                            <i class="fa-solid ${meta.icon}" style="margin-right:6px; color:var(--accent-blue)"></i>
+                            ${meta.label}
+                        </span>
+                        <span class="signal-badge-sm ${accClass}">${accStr}</span>
+                    </div>
+                    <div class="strategy-score">${stats.correct}/${stats.total} correct</div>
+                    <div class="strategy-details">Directional accuracy on ${data.window_days}-day windows</div>
+                </div>
+            `;
+        }).join("");
+    } catch {
+        if (loadingEl) loadingEl.style.display = "none";
+        if (emptyEl) {
+            emptyEl.style.display = "block";
+            emptyEl.innerHTML = `<div class="empty-state"><p>Backtest unavailable.</p></div>`;
         }
     }
 }

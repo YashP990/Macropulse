@@ -17,7 +17,7 @@ from strategies.config import (
 logger = logging.getLogger(__name__)
 
 
-def calculate_monte_carlo(symbol, num_simulations=MC_NUM_SIMULATIONS, forecast_days=MC_FORECAST_DAYS, seed=None):
+def calculate_monte_carlo(symbol, num_simulations=MC_NUM_SIMULATIONS, forecast_days=MC_FORECAST_DAYS, seed=None, df=None):
     """
     Monte Carlo Price Simulation using Geometric Brownian Motion (GBM):
     - 1000 vectorized simulated price paths for performance
@@ -26,9 +26,11 @@ def calculate_monte_carlo(symbol, num_simulations=MC_NUM_SIMULATIONS, forecast_d
     - Output: probability of price being higher in 30 days, expected range
     - Score from -1 (strong sell) to +1 (strong buy)
     - seed: optional int for reproducible results (None = non-deterministic)
+    - df: optional pre-sliced DataFrame for backtesting.
     """
     try:
-        df = get_historical_dataframe(symbol, period="1y")
+        if df is None:
+            df = get_historical_dataframe(symbol, period="1y")
         if df is None or len(df) < MC_MIN_PERIODS:
             return None
 

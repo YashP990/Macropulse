@@ -49,7 +49,7 @@ def _calculate_rsi(closes, period=MEAN_REV_RSI_PERIOD):
     return 100.0 - (100.0 / (1.0 + rs))
 
 
-def calculate_mean_reversion(symbol):
+def calculate_mean_reversion(symbol, df=None):
     """
     Z-Score Mean Reversion Strategy:
     - Z-score of current price vs 50-day mean / 20-day std
@@ -57,9 +57,12 @@ def calculate_mean_reversion(symbol):
     - RSI (14-period): RSI < 30 → oversold, RSI > 70 → overbought
     - Z < -2 → oversold (buy), Z > 2 → overbought (sell)
     - Score from -1 (strong sell) to +1 (strong buy)
+
+    df: optional pre-sliced DataFrame for backtesting.
     """
     try:
-        df = get_historical_dataframe(symbol, period="6mo")
+        if df is None:
+            df = get_historical_dataframe(symbol, period="6mo")
         if df is None or len(df) < MEAN_REV_MIN_PERIODS:
             return None
 

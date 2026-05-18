@@ -20,15 +20,20 @@ from strategies.config import (
 logger = logging.getLogger(__name__)
 
 
-def calculate_momentum(symbol):
+def calculate_momentum(symbol, df=None):
     """
     Dual Momentum Strategy:
     - Absolute momentum: 12-month return > 0 → bullish
-    - Relative momentum: Compare ROC vs SPY benchmark
+    - Relative momentum: Compare ROC vs SPY benchmark (skipped when df is pre-supplied)
     - Score from -1 (strong sell) to +1 (strong buy)
+
+    df: optional pre-sliced DataFrame for backtesting. When supplied, SPY comparison
+        is skipped (relative_score = 0) to avoid fetching SPY for every window.
     """
     try:
-        df = get_historical_dataframe(symbol, period="1y")
+        df_supplied = df is not None
+        if not df_supplied:
+            df = get_historical_dataframe(symbol, period="1y")
         if df is None or len(df) < MOMENTUM_MIN_PERIODS:
             return None
 
@@ -41,13 +46,15 @@ def calculate_momentum(symbol):
         roc_20 = (closes[-1] - closes[-MOMENTUM_ROC_SHORT_WINDOW]) / closes[-MOMENTUM_ROC_SHORT_WINDOW] if len(closes) >= MOMENTUM_ROC_SHORT_WINDOW else 0
         roc_60 = (closes[-1] - closes[-MOMENTUM_ROC_LONG_WINDOW]) / closes[-MOMENTUM_ROC_LONG_WINDOW] if len(closes) >= MOMENTUM_ROC_LONG_WINDOW else 0
 
-        # Relative momentum vs SPY benchmark
-        spy_df = get_historical_dataframe("SPY", period="1y")
+        # Relative momentum vs SPY benchmark (skipped in backtest to avoid per-window fetches)
         relative_score = 0
-        if spy_df is not None and len(spy_df) >= MOMENTUM_MIN_PERIODS:
-            spy_closes = spy_df["Close"].values
-            spy_return = (spy_closes[-1] - spy_closes[0]) / spy_closes[0]
-            relative_score = total_return - spy_return
+        spy_df = None
+        if not df_supplied:
+            spy_df = get_historical_dataframe("SPY", period="1y")
+            if spy_df is not None and len(spy_df) >= MOMENTUM_MIN_PERIODS:
+                spy_closes = spy_df["Close"].values
+                spy_return = (spy_closes[-1] - spy_closes[0]) / spy_closes[0]
+                relative_score = total_return - spy_return
 
         # Combine signals
         # Absolute: positive return = bullish
