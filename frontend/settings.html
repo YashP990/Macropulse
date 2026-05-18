@@ -269,6 +269,46 @@ Color-blind mode selection buttons for switching accessibility display settings 
                     </div>
                 </form>
             </div>
+            <!-- Mubashir - US-F: Strategy Weight Sliders -->
+            <div class="settings-panel" id="strategy-weights-panel">
+                <div class="settings-panel-header">
+                    <i class="fa-solid fa-sliders"></i>
+                    <div>
+                        <h2>Strategy Weights</h2>
+                        <p>Adjust how much each strategy influences the final BUY/SELL/HOLD signal. Weights always sum to 100%.</p>
+                    </div>
+                </div>
+
+                <form class="settings-form" id="strategy-weights-form">
+                    <div class="weight-slider-row">
+                        <label for="w-momentum">Momentum <span class="weight-value" id="w-momentum-val">30%</span></label>
+                        <input type="range" id="w-momentum" data-strategy="momentum" min="0" max="100" step="1" value="30">
+                    </div>
+                    <div class="weight-slider-row">
+                        <label for="w-mean-reversion">Mean Reversion <span class="weight-value" id="w-mean-reversion-val">25%</span></label>
+                        <input type="range" id="w-mean-reversion" data-strategy="mean_reversion" min="0" max="100" step="1" value="25">
+                    </div>
+                    <div class="weight-slider-row">
+                        <label for="w-monte-carlo">Monte Carlo <span class="weight-value" id="w-monte-carlo-val">25%</span></label>
+                        <input type="range" id="w-monte-carlo" data-strategy="monte_carlo" min="0" max="100" step="1" value="25">
+                    </div>
+                    <div class="weight-slider-row">
+                        <label for="w-factor-model">Factor Model <span class="weight-value" id="w-factor-model-val">20%</span></label>
+                        <input type="range" id="w-factor-model" data-strategy="factor_model" min="0" max="100" step="1" value="20">
+                    </div>
+                    <div class="weight-total-row">
+                        Total: <span id="weight-total">100%</span>
+                    </div>
+                    <div class="settings-actions">
+                        <button type="button" class="btn btn-secondary" id="reset-weights">
+                            <i class="fa-solid fa-rotate-left"></i>
+                            Reset to Defaults
+                        </button>
+                    </div>
+                    <p class="settings-feedback" id="weights-feedback" role="status" aria-live="polite"></p>
+                </form>
+            </div>
+
             <div class="settings-panel">
                 <div class="settings-panel-header">
                     <i class="fa-solid fa-rotate-left"></i>

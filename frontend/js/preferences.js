@@ -6,6 +6,13 @@
 const MACROPULSE_PREFS_KEY = "macropulsePreferences";
 /* Yash Patel, 05/18/2026
 Default color-blind mode setting for the website */
+const DEFAULT_STRATEGY_WEIGHTS = {
+    momentum: 30,
+    mean_reversion: 25,
+    monte_carlo: 25,
+    factor_model: 20,
+};
+
 const DEFAULT_PREFERENCES = {
     theme: "dark",
     colorBlindMode: "default",
@@ -23,6 +30,8 @@ const DEFAULT_PREFERENCES = {
     privateMode: false,
     hideProfileName: false,
     hideProfileEmail: false,
+    // Mubashir - US-F: Strategy weight percentages (must sum to 100)
+    strategyWeights: { ...DEFAULT_STRATEGY_WEIGHTS },
 };
 
 function getPreferences() {

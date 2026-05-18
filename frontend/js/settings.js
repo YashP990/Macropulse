@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initNotificationControls();
     initDashboardPreferenceControls();
     initPrivacyPreferenceControls();
+    initStrategyWeightControls();
     initResetControls();
     renderSettings(getPreferences());
 });
@@ -152,6 +153,95 @@ function initPrivacyPreferenceControls() {
         privacyFeedback.classList.add("is-visible");
     });
 }
+// Mubashir - US-F: Strategy weight sliders with coupled redistribution
+function initStrategyWeightControls() {
+    const sliders = Array.from(document.querySelectorAll("#strategy-weights-form input[type=range]"));
+    const resetBtn = document.getElementById("reset-weights");
+    const feedback = document.getElementById("weights-feedback");
+    if (!sliders.length) return;
+
+    function getStrategyKey(slider) {
+        return slider.getAttribute("data-strategy");
+    }
+
+    function updateLabelsAndTotal() {
+        let total = 0;
+        sliders.forEach((s) => {
+            const val = parseInt(s.value, 10);
+            total += val;
+            const label = document.getElementById(`${s.id}-val`);
+            if (label) label.textContent = `${val}%`;
+        });
+        const totalEl = document.getElementById("weight-total");
+        if (totalEl) {
+            totalEl.textContent = `${total}%`;
+            totalEl.style.color = total === 100 ? "var(--accent-green)" : "var(--accent-red)";
+        }
+    }
+
+    function saveWeights() {
+        const weights = {};
+        sliders.forEach((s) => {
+            weights[getStrategyKey(s)] = parseInt(s.value, 10);
+        });
+        savePreferences({ strategyWeights: weights });
+        if (feedback) {
+            feedback.textContent = "Weights saved.";
+            feedback.classList.add("is-visible");
+            clearTimeout(feedback._timeout);
+            feedback._timeout = setTimeout(() => {
+                feedback.textContent = "";
+                feedback.classList.remove("is-visible");
+            }, 1500);
+        }
+    }
+
+    sliders.forEach((movedSlider) => {
+        movedSlider.addEventListener("input", () => {
+            const movedVal = parseInt(movedSlider.value, 10);
+            const others = sliders.filter((s) => s !== movedSlider);
+
+            // Sum of other sliders before redistribution
+            const othersSum = others.reduce((sum, s) => sum + parseInt(s.value, 10), 0);
+            const remaining = 100 - movedVal;
+
+            if (othersSum === 0) {
+                // Distribute remaining evenly if all others are at 0
+                const each = Math.floor(remaining / others.length);
+                others.forEach((s, i) => {
+                    s.value = i === others.length - 1 ? remaining - each * (others.length - 1) : each;
+                });
+            } else {
+                // Scale proportionally
+                let distributed = 0;
+                others.forEach((s, i) => {
+                    if (i === others.length - 1) {
+                        s.value = Math.max(0, remaining - distributed);
+                    } else {
+                        const share = Math.round((parseInt(s.value, 10) / othersSum) * remaining);
+                        s.value = Math.max(0, share);
+                        distributed += parseInt(s.value, 10);
+                    }
+                });
+            }
+
+            updateLabelsAndTotal();
+            saveWeights();
+        });
+    });
+
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+            const defaults = DEFAULT_STRATEGY_WEIGHTS;
+            sliders.forEach((s) => {
+                s.value = defaults[getStrategyKey(s)] || 0;
+            });
+            updateLabelsAndTotal();
+            saveWeights();
+        });
+    }
+}
+
 function initResetControls() {
     const resetButton = document.getElementById("reset-preferences");
     const resetFeedback = document.getElementById("reset-feedback");
@@ -218,6 +308,23 @@ Highlights the currently selected color-blind mode button in the settings menu*/
         previewImage.hidden = true;
         previewInitials.hidden = false;
         previewInitials.textContent = getProfileInitials(preferences);
+    }
+
+    // Render strategy weight sliders
+    const weights = preferences.strategyWeights || DEFAULT_STRATEGY_WEIGHTS;
+    document.querySelectorAll("#strategy-weights-form input[type=range]").forEach((slider) => {
+        const key = slider.getAttribute("data-strategy");
+        if (key && weights[key] != null) {
+            slider.value = weights[key];
+            const label = document.getElementById(`${slider.id}-val`);
+            if (label) label.textContent = `${weights[key]}%`;
+        }
+    });
+    const totalEl = document.getElementById("weight-total");
+    if (totalEl) {
+        const total = Object.values(weights).reduce((a, b) => a + b, 0);
+        totalEl.textContent = `${total}%`;
+        totalEl.style.color = total === 100 ? "var(--accent-green)" : "var(--accent-red)";
     }
 
     if (resetFeedback) {

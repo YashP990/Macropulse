@@ -23,14 +23,16 @@ _signal_cache = {}
 CACHE_TTL = 300  # seconds (5 minutes)
 
 
-def get_aggregated_signal(symbol):
+def get_aggregated_signal(symbol, weights=None):
     """
     Weighted ensemble combining all strategies into BUY/SELL/HOLD with confidence %.
 
-    - Runs all 4 strategies independently (cached for 5 minutes per symbol)
-    - Combines scores using predefined weights from config
+    - Runs all 4 strategies independently (cached for 5 minutes per symbol+weights)
+    - Combines scores using predefined weights from config (or custom weights if supplied)
     - Redistributes weight if a strategy returns None (missing data)
     - Confidence: 30-100% based on score magnitude and strategy agreement
+    - weights: optional dict {strategy_name: float} overriding STRATEGY_WEIGHTS.
+      Values are normalized to sum to 1 automatically.
 
     Returns:
         {
@@ -42,10 +44,27 @@ def get_aggregated_signal(symbol):
     """
     symbol = symbol.upper()
 
+    # Normalize custom weights so they sum to 1
+    if weights is not None:
+        total_w = sum(weights.values())
+        if total_w > 0:
+            weights = {k: v / total_w for k, v in weights.items()}
+        else:
+            weights = None
+
+    effective_weights = weights if weights is not None else STRATEGY_WEIGHTS
+
+    # Cache key includes weight fingerprint to isolate custom-weight calls
+    if weights is not None:
+        weight_str = "_".join(f"{k[:3]}{round(v, 3)}" for k, v in sorted(weights.items()))
+        cache_key = f"{symbol}_{weight_str}"
+    else:
+        cache_key = symbol
+
     # US13: Return cached result if still within TTL
-    cached = _signal_cache.get(symbol)
+    cached = _signal_cache.get(cache_key)
     if cached and (time.time() - cached["timestamp"]) < CACHE_TTL:
-        logger.info("Cache hit for %s (age: %.0fs)", symbol, time.time() - cached["timestamp"])
+        logger.info("Cache hit for %s (age: %.0fs)", cache_key, time.time() - cached["timestamp"])
         return cached["data"]
 
     # Run all strategies and track execution
@@ -73,7 +92,7 @@ def get_aggregated_signal(symbol):
 
     for strategy_name, result in results.items():
         if result is not None:
-            weight = STRATEGY_WEIGHTS[strategy_name]
+            weight = effective_weights.get(strategy_name, STRATEGY_WEIGHTS.get(strategy_name, 0))
             weighted_sum += result["score"] * weight
             total_weight += weight
             breakdown[strategy_name] = result
@@ -139,6 +158,6 @@ def get_aggregated_signal(symbol):
     }
 
     # US13: Store result in cache with current timestamp
-    _signal_cache[symbol] = {"data": result_data, "timestamp": time.time()}
+    _signal_cache[cache_key] = {"data": result_data, "timestamp": time.time()}
 
     return result_data
