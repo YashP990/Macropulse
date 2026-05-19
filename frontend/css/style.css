@@ -1130,6 +1130,53 @@ Creates a spaced grid layout for the color blindness settings section and toggle
     border-radius: var(--radius);
 }
 
+
+.security-status-list {
+    display: grid;
+    gap: 10px;
+}
+
+.security-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.92rem;
+}
+
+.security-status-row.is-loading,
+.security-status-row.is-error {
+    color: var(--text-secondary);
+}
+
+.security-status-badge {
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.security-status-badge.configured {
+    background: var(--buy-bg);
+    color: var(--accent-green);
+}
+
+.security-status-badge.missing {
+    background: var(--sell-bg);
+    color: var(--accent-red);
+}
+
+.security-status-badge.no_key_needed {
+    background: var(--hold-bg);
+    color: var(--accent-yellow);
+}
+
 .reset-preferences-card {
     display: grid;
     gap: 14px;

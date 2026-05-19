@@ -136,3 +136,11 @@ async function getSignals(symbol) {
 
     return fetchJsonWithFallback(endpoint);
 }
+
+/**
+ * Get safe API key configuration status.
+ * GET /api/v1/security/config
+ */
+async function getSecurityConfig() {
+    return apiRequest(`/security/config`);
+}

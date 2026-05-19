@@ -311,6 +311,22 @@ Color-blind mode selection buttons for switching accessibility display settings 
 
             <div class="settings-panel">
                 <div class="settings-panel-header">
+                    <i class="fa-solid fa-key"></i>
+                    <div>
+                        <h2>API Key Security</h2>
+                        <p>View market-data provider configuration status without exposing secret values.</p>
+                    </div>
+                </div>
+
+                <div class="security-status-list" id="api-key-security-list" aria-live="polite">
+                    <div class="security-status-row is-loading">
+                        <span>Checking provider status...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-panel">
+                <div class="settings-panel-header">
                     <i class="fa-solid fa-rotate-left"></i>
                     <div>
                         <h2>Reset Preferences</h2>
@@ -342,6 +358,7 @@ Color-blind mode selection buttons for switching accessibility display settings 
         </div>
     </footer>
 
+    <script src="js/api.js"></script>
     <script src="js/preferences.js"></script>
     <script src="js/settings.js"></script>
 </body>

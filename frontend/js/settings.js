@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initStrategyWeightControls();
     initResetControls();
     renderSettings(getPreferences());
+    loadApiKeySecurityStatus();
 });
 
 function initThemeControls() {
@@ -336,4 +337,44 @@ Highlights the currently selected color-blind mode button in the settings menu*/
         privacyFeedback.textContent = "";
         privacyFeedback.classList.remove("is-visible");
     }
+}
+
+async function loadApiKeySecurityStatus() {
+    const list = document.getElementById("api-key-security-list");
+    if (!list || typeof getSecurityConfig !== "function") return;
+
+    try {
+        const data = await getSecurityConfig();
+        renderApiKeySecurityStatus(data.providers || []);
+    } catch {
+        list.innerHTML = `
+            <div class="security-status-row is-error">
+                <span>Security status unavailable</span>
+                <span class="security-status-badge missing">Unavailable</span>
+            </div>
+        `;
+    }
+}
+
+function renderApiKeySecurityStatus(providers) {
+    const list = document.getElementById("api-key-security-list");
+    if (!list) return;
+
+    const statusLabels = {
+        configured: "Configured",
+        missing: "Missing",
+        no_key_needed: "No key needed",
+    };
+
+    list.innerHTML = providers
+        .map((provider) => {
+            const status = provider.status || "missing";
+            return `
+                <div class="security-status-row">
+                    <span>${provider.name}</span>
+                    <span class="security-status-badge ${status}">${statusLabels[status] || "Missing"}</span>
+                </div>
+            `;
+        })
+        .join("");
 }
