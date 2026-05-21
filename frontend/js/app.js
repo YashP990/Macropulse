@@ -30,6 +30,12 @@ const SURVEY_RECOMMENDATIONS = {
         copy: "For long-term growth, start research with a broad S&P 500 fund like SPY or VOO instead of trying to pick one winner.",
         chips: ["Broad market", "5+ year view", "Lower maintenance"],
         symbols: ["SPY", "VOO", "VTI", "QQQ"],
+        reasons: {
+            SPY: "Tracks the S&P 500, giving broad exposure to large U.S. companies.",
+            VOO: "A low-cost S&P 500 fund for long-term core market exposure.",
+            VTI: "Covers nearly the entire U.S. stock market in one fund.",
+            QQQ: "Adds growth-heavy Nasdaq exposure for users comfortable with more swings.",
+        },
         weights: {
             momentum: 20,
             mean_reversion: 20,
@@ -44,6 +50,12 @@ const SURVEY_RECOMMENDATIONS = {
         copy: "For steady income, start research with dividend-focused funds and mature companies, then use signals as a second opinion.",
         chips: ["Dividend focus", "Quality stocks", "Moderate swings"],
         symbols: ["SCHD", "VYM", "KO", "JNJ"],
+        reasons: {
+            SCHD: "Focuses on dividend quality and dividend growth.",
+            VYM: "Offers diversified exposure to higher-dividend U.S. stocks.",
+            KO: "A mature dividend payer often researched by income-focused investors.",
+            JNJ: "A defensive healthcare name with a long dividend history.",
+        },
         weights: {
             momentum: 15,
             mean_reversion: 25,
@@ -58,6 +70,12 @@ const SURVEY_RECOMMENDATIONS = {
         copy: "For active trading, use BUY/HOLD/SELL signals to build a research list, then confirm with news, chart history, and risk limits.",
         chips: ["Signal watchlist", "Shorter chart", "Higher review frequency"],
         symbols: ["QQQ", "NVDA", "TSLA", "AMD"],
+        reasons: {
+            QQQ: "Tracks growth-heavy Nasdaq names that active traders often monitor.",
+            NVDA: "A high-growth AI and semiconductor leader with strong momentum interest.",
+            TSLA: "A volatile stock that can fit high-risk, signal-guided research.",
+            AMD: "A semiconductor name with growth potential and active trading volume.",
+        },
         weights: {
             momentum: 45,
             mean_reversion: 20,
@@ -72,6 +90,12 @@ const SURVEY_RECOMMENDATIONS = {
         copy: "For protecting money, start with lower-volatility cash-like or bond ETF research and treat stock BUY signals conservatively.",
         chips: ["Lower volatility", "Cash-like ETFs", "Risk first"],
         symbols: ["BIL", "SHY", "XLP", "PG"],
+        reasons: {
+            BIL: "Tracks short-term Treasury bills for cash-like market exposure.",
+            SHY: "Focuses on short-term Treasury bonds with lower interest-rate risk.",
+            XLP: "Covers consumer staples, a sector investors often view as defensive.",
+            PG: "A defensive consumer staples company with steady demand characteristics.",
+        },
         weights: {
             momentum: 10,
             mean_reversion: 20,
@@ -352,7 +376,7 @@ function renderInvestmentSurvey(preferences) {
     );
     if (symbols) {
         symbols.replaceChildren(
-            ...recommendation.symbols.map(createRecommendationSymbolCard),
+            ...recommendation.symbols.map((symbol) => createRecommendationSymbolCard(symbol, recommendation.reasons)),
             createAddRecommendedSymbolsButton(recommendation.symbols)
         );
     }
@@ -365,12 +389,20 @@ function createRecommendationChip(text) {
     return chip;
 }
 
-function createRecommendationSymbolCard(symbol) {
+function createRecommendationSymbolCard(symbol, reasons = {}) {
     const card = document.createElement("div");
     card.className = "recommendation-symbol-card";
 
+    const details = document.createElement("div");
+    details.className = "recommendation-symbol-details";
+
     const heading = document.createElement("strong");
     heading.textContent = symbol;
+
+    const reason = document.createElement("small");
+    reason.textContent = reasons[symbol] || "Recommended from your survey profile.";
+
+    details.append(heading, reason);
 
     const actions = document.createElement("div");
     actions.className = "recommendation-symbol-actions";
@@ -393,7 +425,7 @@ function createRecommendationSymbolCard(symbol) {
     });
 
     actions.append(researchButton, addButton);
-    card.append(heading, actions);
+    card.append(details, actions);
     return card;
 }
 

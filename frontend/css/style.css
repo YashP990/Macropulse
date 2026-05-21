@@ -1267,7 +1267,7 @@ Creates a spaced grid layout for the color blindness settings section and toggle
 
 .recommendation-symbol-card {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     padding: 12px;
@@ -1276,14 +1276,26 @@ Creates a spaced grid layout for the color blindness settings section and toggle
     border-radius: var(--radius);
 }
 
+.recommendation-symbol-details {
+    display: grid;
+    gap: 3px;
+}
+
 .recommendation-symbol-card strong {
     color: var(--accent-blue);
     font-size: 1rem;
 }
 
+.recommendation-symbol-card small {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
 .recommendation-symbol-actions {
     display: flex;
     gap: 8px;
+    flex: 0 0 auto;
 }
 
 .recommendation-symbol-actions .btn {
