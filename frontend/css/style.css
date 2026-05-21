@@ -1259,6 +1259,43 @@ Creates a spaced grid layout for the color blindness settings section and toggle
     font-weight: 600;
 }
 
+.recommendation-symbols {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.recommendation-symbol-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
+.recommendation-symbol-card strong {
+    color: var(--accent-blue);
+    font-size: 1rem;
+}
+
+.recommendation-symbol-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.recommendation-symbol-actions .btn {
+    padding: 7px 10px;
+    font-size: 0.8rem;
+}
+
+.recommendation-add-all {
+    grid-column: 1 / -1;
+    justify-content: center;
+}
+
 .investment-recommendation small {
     color: var(--text-muted);
     font-size: 0.8rem;
@@ -1385,6 +1422,10 @@ Creates a spaced grid layout for the color blindness settings section and toggle
     }
 
     .investment-survey-modal .settings-form {
+        grid-template-columns: 1fr;
+    }
+
+    .recommendation-symbols {
         grid-template-columns: 1fr;
     }
 

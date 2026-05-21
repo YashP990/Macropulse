@@ -29,6 +29,7 @@ const SURVEY_RECOMMENDATIONS = {
         chartRange: "5y",
         copy: "For long-term growth, start research with a broad S&P 500 fund like SPY or VOO instead of trying to pick one winner.",
         chips: ["Broad market", "5+ year view", "Lower maintenance"],
+        symbols: ["SPY", "VOO", "VTI", "QQQ"],
         weights: {
             momentum: 20,
             mean_reversion: 20,
@@ -42,6 +43,7 @@ const SURVEY_RECOMMENDATIONS = {
         chartRange: "2y",
         copy: "For steady income, start research with dividend-focused funds and mature companies, then use signals as a second opinion.",
         chips: ["Dividend focus", "Quality stocks", "Moderate swings"],
+        symbols: ["SCHD", "VYM", "KO", "JNJ"],
         weights: {
             momentum: 15,
             mean_reversion: 25,
@@ -55,6 +57,7 @@ const SURVEY_RECOMMENDATIONS = {
         chartRange: "3mo",
         copy: "For active trading, use BUY/HOLD/SELL signals to build a research list, then confirm with news, chart history, and risk limits.",
         chips: ["Signal watchlist", "Shorter chart", "Higher review frequency"],
+        symbols: ["QQQ", "NVDA", "TSLA", "AMD"],
         weights: {
             momentum: 45,
             mean_reversion: 20,
@@ -68,6 +71,7 @@ const SURVEY_RECOMMENDATIONS = {
         chartRange: "1y",
         copy: "For protecting money, start with lower-volatility cash-like or bond ETF research and treat stock BUY signals conservatively.",
         chips: ["Lower volatility", "Cash-like ETFs", "Risk first"],
+        symbols: ["BIL", "SHY", "XLP", "PG"],
         weights: {
             momentum: 10,
             mean_reversion: 20,
@@ -320,6 +324,7 @@ function renderInvestmentSurvey(preferences) {
     const title = document.getElementById("investment-recommendation-title");
     const copy = document.getElementById("investment-recommendation-copy");
     const chips = document.getElementById("investment-recommendation-chips");
+    const symbols = document.getElementById("investment-recommendation-symbols");
     const feedback = document.getElementById("investment-survey-feedback");
 
     document.getElementById("investment-goal").value = survey.goal || "";
@@ -345,6 +350,12 @@ function renderInvestmentSurvey(preferences) {
         createRecommendationChip(`Starter symbol: ${recommendation.symbol}`),
         createRecommendationChip(`Chart: ${recommendation.chartRange}`)
     );
+    if (symbols) {
+        symbols.replaceChildren(
+            ...recommendation.symbols.map(createRecommendationSymbolCard),
+            createAddRecommendedSymbolsButton(recommendation.symbols)
+        );
+    }
     recommendationPanel.hidden = false;
 }
 
@@ -352,6 +363,67 @@ function createRecommendationChip(text) {
     const chip = document.createElement("span");
     chip.textContent = text;
     return chip;
+}
+
+function createRecommendationSymbolCard(symbol) {
+    const card = document.createElement("div");
+    card.className = "recommendation-symbol-card";
+
+    const heading = document.createElement("strong");
+    heading.textContent = symbol;
+
+    const actions = document.createElement("div");
+    actions.className = "recommendation-symbol-actions";
+
+    const researchButton = document.createElement("button");
+    researchButton.type = "button";
+    researchButton.className = "btn btn-secondary";
+    researchButton.textContent = "Research";
+    researchButton.addEventListener("click", () => navigateToStock(symbol));
+
+    const addButton = document.createElement("button");
+    addButton.type = "button";
+    addButton.className = "btn btn-secondary";
+    addButton.textContent = getSavedStocks().includes(symbol) ? "Added" : "Add";
+    addButton.disabled = getSavedStocks().includes(symbol);
+    addButton.addEventListener("click", () => {
+        saveSymbolsToWatchlist([symbol]);
+        addButton.textContent = "Added";
+        addButton.disabled = true;
+    });
+
+    actions.append(researchButton, addButton);
+    card.append(heading, actions);
+    return card;
+}
+
+function createAddRecommendedSymbolsButton(symbols) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn btn-primary recommendation-add-all";
+    button.innerHTML = `<i class="fa-solid fa-star"></i> Add Recommended Watchlist`;
+    button.addEventListener("click", () => {
+        saveSymbolsToWatchlist(symbols);
+        button.innerHTML = `<i class="fa-solid fa-check"></i> Watchlist Added`;
+        button.disabled = true;
+        loadSavedStocks();
+    });
+    return button;
+}
+
+function saveSymbolsToWatchlist(symbols) {
+    const current = getSavedStocks();
+    const next = [...current];
+
+    symbols.forEach((symbol) => {
+        const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+        if (normalizedSymbol && !next.includes(normalizedSymbol)) {
+            next.push(normalizedSymbol);
+        }
+    });
+
+    localStorage.setItem(SAVED_STOCKS_KEY, JSON.stringify(next));
+    loadSavedStocks();
 }
 
 /* Yash Patel, 04/27/2026
