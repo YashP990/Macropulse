@@ -30,6 +30,13 @@ const DEFAULT_PREFERENCES = {
     privateMode: false,
     hideProfileName: false,
     hideProfileEmail: false,
+    investmentSurvey: {
+        goal: "",
+        horizon: "",
+        risk: "",
+        signalPreference: "",
+        lastRecommendation: "",
+    },
     // Mubashir - US-F: Strategy weight percentages (must sum to 100)
     strategyWeights: { ...DEFAULT_STRATEGY_WEIGHTS },
 };

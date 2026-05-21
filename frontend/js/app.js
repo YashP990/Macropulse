@@ -20,12 +20,84 @@ const SAVED_STOCKS_KEY = "macropulseSavedStocks";
  */
 const RECENT_SEARCHES_KEY = "macropulseRecentSearches";
 const MAX_RECENT_SEARCHES = 5;
+const INVESTMENT_SURVEY_SEEN_KEY = "macropulseInvestmentSurveySeen";
+
+const SURVEY_RECOMMENDATIONS = {
+    long_term: {
+        title: "S&P 500 core profile",
+        symbol: "SPY",
+        chartRange: "5y",
+        copy: "For long-term growth, start research with a broad S&P 500 fund like SPY or VOO instead of trying to pick one winner.",
+        chips: ["Broad market", "5+ year view", "Lower maintenance"],
+        weights: {
+            momentum: 20,
+            mean_reversion: 20,
+            monte_carlo: 35,
+            factor_model: 25,
+        },
+    },
+    income: {
+        title: "Income and quality profile",
+        symbol: "VYM",
+        chartRange: "2y",
+        copy: "For steady income, start research with dividend-focused funds and mature companies, then use signals as a second opinion.",
+        chips: ["Dividend focus", "Quality stocks", "Moderate swings"],
+        weights: {
+            momentum: 15,
+            mean_reversion: 25,
+            monte_carlo: 30,
+            factor_model: 30,
+        },
+    },
+    active_trading: {
+        title: "Signal-guided trading profile",
+        symbol: "QQQ",
+        chartRange: "3mo",
+        copy: "For active trading, use BUY/HOLD/SELL signals to build a research list, then confirm with news, chart history, and risk limits.",
+        chips: ["Signal watchlist", "Shorter chart", "Higher review frequency"],
+        weights: {
+            momentum: 45,
+            mean_reversion: 20,
+            monte_carlo: 15,
+            factor_model: 20,
+        },
+    },
+    capital_protection: {
+        title: "Defensive research profile",
+        symbol: "BIL",
+        chartRange: "1y",
+        copy: "For protecting money, start with lower-volatility cash-like or bond ETF research and treat stock BUY signals conservatively.",
+        chips: ["Lower volatility", "Cash-like ETFs", "Risk first"],
+        weights: {
+            momentum: 10,
+            mean_reversion: 20,
+            monte_carlo: 45,
+            factor_model: 25,
+        },
+    },
+};
+
+const RISK_ADJUSTMENTS = {
+    low: {
+        suffix: "Keep alerts conservative and avoid chasing fast moves.",
+        symbolOverride: "",
+    },
+    balanced: {
+        suffix: "Balance broad exposure with a few signal-backed stocks to research.",
+        symbolOverride: "",
+    },
+    high: {
+        suffix: "High risk can use signals more aggressively, but every BUY idea still needs a stop-loss and position-size limit.",
+        symbolOverride: "QQQ",
+    },
+};
 
 let searchTimeout = null;
 let selectedSearchIndex = -1;
 
 document.addEventListener("DOMContentLoaded", () => {
     applyDashboardPreferences();
+    initInvestmentSurveyModal();
     initSearch();
     loadTrendingStocks();
     loadUnderperformingStocks();
@@ -120,6 +192,168 @@ function applyDashboardPreferences() {
         watchlistSection.parentNode.insertBefore(savedStocksSection, watchlistSection);
     }
 }
+
+function initInvestmentSurveyModal() {
+    const modal = document.getElementById("investment-survey-modal");
+    const openButton = document.getElementById("open-investment-survey");
+    const closeButton = document.getElementById("close-investment-survey");
+    const form = document.getElementById("investment-survey-form");
+    const clearButton = document.getElementById("clear-investment-survey");
+    const feedback = document.getElementById("investment-survey-feedback");
+
+    if (!modal || !openButton || !closeButton || !form || !clearButton) return;
+
+    const openModal = () => {
+        modal.hidden = false;
+        document.body.classList.add("modal-open");
+        sessionStorage.setItem(INVESTMENT_SURVEY_SEEN_KEY, "true");
+        renderInvestmentSurvey(getPreferences());
+        document.getElementById("investment-goal").focus();
+    };
+
+    const closeModal = () => {
+        modal.hidden = true;
+        document.body.classList.remove("modal-open");
+    };
+
+    openButton.addEventListener("click", openModal);
+    closeButton.addEventListener("click", closeModal);
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && !modal.hidden) closeModal();
+    });
+
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const survey = {
+            goal: document.getElementById("investment-goal").value,
+            horizon: document.getElementById("investment-horizon").value,
+            risk: document.getElementById("investment-risk").value,
+            signalPreference: document.getElementById("signal-preference").value,
+            lastRecommendation: "",
+        };
+
+        const recommendation = buildInvestmentRecommendation(survey);
+        survey.lastRecommendation = recommendation.title;
+
+        const updates = { investmentSurvey: survey };
+        const applyDefaults = document.getElementById("apply-survey-defaults").checked;
+
+        if (applyDefaults) {
+            updates.defaultStockSymbol = recommendation.symbol;
+            updates.preferredChartRange = recommendation.chartRange;
+            updates.strategyWeights = recommendation.weights;
+        }
+
+        savePreferences(updates);
+        applyDashboardPreferences();
+        renderInvestmentSurvey(getPreferences());
+
+        if (feedback) {
+            feedback.textContent = applyDefaults
+                ? "Recommendation saved and dashboard defaults updated."
+                : "Recommendation saved.";
+            feedback.classList.add("is-visible");
+        }
+    });
+
+    clearButton.addEventListener("click", () => {
+        savePreferences({
+            investmentSurvey: {
+                goal: "",
+                horizon: "",
+                risk: "",
+                signalPreference: "",
+                lastRecommendation: "",
+            },
+        });
+        renderInvestmentSurvey(getPreferences());
+
+        if (feedback) {
+            feedback.textContent = "Survey cleared.";
+            feedback.classList.add("is-visible");
+        }
+    });
+
+    renderInvestmentSurvey(getPreferences());
+
+    const survey = getPreferences().investmentSurvey || {};
+    if (!survey.lastRecommendation && sessionStorage.getItem(INVESTMENT_SURVEY_SEEN_KEY) !== "true") {
+        window.setTimeout(openModal, 650);
+    }
+}
+
+function buildInvestmentRecommendation(survey) {
+    const goalKey = survey.goal || "long_term";
+    const base = SURVEY_RECOMMENDATIONS[goalKey] || SURVEY_RECOMMENDATIONS.long_term;
+    const risk = RISK_ADJUSTMENTS[survey.risk] || RISK_ADJUSTMENTS.balanced;
+    const wantsSignals = survey.signalPreference === "signal_guided";
+    const manualOnly = survey.signalPreference === "manual";
+    const horizonCopy = survey.horizon === "short"
+        ? "Because your timeline is short, treat this as a watchlist idea instead of a set-and-forget investment."
+        : survey.horizon === "long"
+            ? "Because your timeline is long, broad diversification matters more than daily signal noise."
+            : "Review the recommendation regularly as your timeline changes.";
+
+    return {
+        ...base,
+        symbol: risk.symbolOverride || base.symbol,
+        copy: [
+            base.copy,
+            risk.suffix,
+            wantsSignals
+                ? "Use the app's BUY/HOLD/SELL signal as a research filter, not an automatic trade."
+                : manualOnly
+                    ? "No signal defaults were added; use this as a planning summary."
+                    : "Start with safer broad-market research before relying on individual stock signals.",
+            horizonCopy,
+        ].join(" "),
+    };
+}
+
+function renderInvestmentSurvey(preferences) {
+    const survey = preferences.investmentSurvey || {};
+    const recommendationPanel = document.getElementById("investment-recommendation");
+    const title = document.getElementById("investment-recommendation-title");
+    const copy = document.getElementById("investment-recommendation-copy");
+    const chips = document.getElementById("investment-recommendation-chips");
+    const feedback = document.getElementById("investment-survey-feedback");
+
+    document.getElementById("investment-goal").value = survey.goal || "";
+    document.getElementById("investment-horizon").value = survey.horizon || "";
+    document.getElementById("investment-risk").value = survey.risk || "";
+    document.getElementById("signal-preference").value = survey.signalPreference || "";
+
+    if (feedback) {
+        feedback.textContent = "";
+        feedback.classList.remove("is-visible");
+    }
+
+    if (!recommendationPanel || !survey.lastRecommendation) {
+        if (recommendationPanel) recommendationPanel.hidden = true;
+        return;
+    }
+
+    const recommendation = buildInvestmentRecommendation(survey);
+    title.textContent = recommendation.title;
+    copy.textContent = recommendation.copy;
+    chips.replaceChildren(
+        ...recommendation.chips.map(createRecommendationChip),
+        createRecommendationChip(`Starter symbol: ${recommendation.symbol}`),
+        createRecommendationChip(`Chart: ${recommendation.chartRange}`)
+    );
+    recommendationPanel.hidden = false;
+}
+
+function createRecommendationChip(text) {
+    const chip = document.createElement("span");
+    chip.textContent = text;
+    return chip;
+}
+
 /* Yash Patel, 04/27/2026
 Fetches stock search results, updates dropdown UI, handles loading, no results, and errors.*/
 async function performSearch(query) {

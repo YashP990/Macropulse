@@ -69,8 +69,91 @@ Apply saved color-blind display mode to the website-->
                 <i class="fa-solid fa-clock-rotate-left"></i>
                 Clear Recent Searches
             </button>
+            <button type="button" class="btn btn-primary" id="open-investment-survey" style="margin-top: 12px;">
+                <i class="fa-solid fa-compass"></i>
+                Help Me Choose
+            </button>
         </div>
     </section>
+
+    <div class="modal-backdrop" id="investment-survey-modal" hidden>
+        <div class="modal-panel investment-survey-modal" role="dialog" aria-modal="true" aria-labelledby="investment-survey-title">
+            <button type="button" class="modal-close" id="close-investment-survey" aria-label="Close investment guide">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="modal-header">
+                <i class="fa-solid fa-compass"></i>
+                <div>
+                    <h2 id="investment-survey-title">Find Your Starting Point</h2>
+                    <p>Answer a few questions and Macropulse will suggest a dashboard setup.</p>
+                </div>
+            </div>
+
+            <form class="settings-form" id="investment-survey-form">
+                <label for="investment-goal">Main Goal</label>
+                <select id="investment-goal">
+                    <option value="">Choose a goal</option>
+                    <option value="long_term">Long-term growth</option>
+                    <option value="income">Steady income</option>
+                    <option value="active_trading">Active trading ideas</option>
+                    <option value="capital_protection">Protect my money</option>
+                </select>
+
+                <label for="investment-horizon">Time Horizon</label>
+                <select id="investment-horizon">
+                    <option value="">Choose a timeline</option>
+                    <option value="short">Less than 1 year</option>
+                    <option value="medium">1 to 5 years</option>
+                    <option value="long">5+ years</option>
+                </select>
+
+                <label for="investment-risk">Risk Comfort</label>
+                <select id="investment-risk">
+                    <option value="">Choose risk level</option>
+                    <option value="low">Low risk</option>
+                    <option value="balanced">Balanced risk</option>
+                    <option value="high">High risk</option>
+                </select>
+
+                <label for="signal-preference">Signal Help</label>
+                <select id="signal-preference">
+                    <option value="">Choose signal style</option>
+                    <option value="educational">Show safer starting points</option>
+                    <option value="signal_guided">Recommend stocks to research from BUY/HOLD/SELL signals</option>
+                    <option value="manual">I only want the survey summary</option>
+                </select>
+
+                <label class="preference-toggle">
+                    <input type="checkbox" id="apply-survey-defaults" checked>
+                    <span>
+                        <strong>Apply recommended defaults</strong>
+                        <small>Update dashboard symbol, chart range, and strategy weights from this profile.</small>
+                    </span>
+                </label>
+
+                <div class="settings-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Get Recommendation
+                    </button>
+                    <button type="button" class="btn btn-secondary" id="clear-investment-survey">
+                        Clear Survey
+                    </button>
+                </div>
+                <p class="settings-feedback" id="investment-survey-feedback" role="status" aria-live="polite"></p>
+            </form>
+
+            <div class="investment-recommendation" id="investment-recommendation" hidden>
+                <div class="recommendation-label">Recommended starting point</div>
+                <h3 id="investment-recommendation-title"></h3>
+                <p id="investment-recommendation-copy"></p>
+                <div class="recommendation-chips" id="investment-recommendation-chips"></div>
+                <small>Educational guidance only. Review risk, fees, and your own financial situation before investing.</small>
+            </div>
+        </div>
+    </div>
+
     <!-- Trending Stocks -->
     <section class="container">
         <div class="section-title">
