@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio - Macropulse</title>
+    <script>
+<!-- Apply color-blind / theme display mode before paint (matches other pages) -->
+        try {
+            const prefs = JSON.parse(localStorage.getItem("macropulsePreferences") || "{}");
+            document.documentElement.setAttribute("data-theme", prefs.theme || "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", prefs.colorBlindMode || "default");
+        } catch {
+            document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", "default");
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">
+                <i class="fa-solid fa-chart-line"></i>
+                Macropulse
+            </a>
+            <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="screener.html">Screener</a>
+                <a href="journal.html">Journal</a>
+                <a href="portfolio.html" class="active">Portfolio</a>
+                <a href="settings.html">Settings</a>
+                <a href="settings.html" class="profile-button" data-profile-button aria-label="Open settings">
+                    <span class="profile-avatar">
+                        <img data-profile-image alt="Profile picture" hidden>
+                        <span data-profile-initials>G</span>
+                    </span>
+                    <span data-profile-status>Sign in</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="search-section" style="padding: 2rem 0 1.5rem">
+        <div class="container">
+            <h1>Portfolio</h1>
+            <p>Live overview of your open positions, valued at current market prices</p>
+        </div>
+    </section>
+
+    <div class="container" style="padding-bottom: 3rem">
+
+        <!-- Totals -->
+        <div class="metrics-grid" id="portfolio-totals" style="margin-bottom: 1.5rem">
+            <div class="metric-item">
+                <div class="metric-label">Open Positions</div>
+                <div class="metric-value" id="tot-count">0</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Cost Basis</div>
+                <div class="metric-value" id="tot-cost">&mdash;</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Market Value</div>
+                <div class="metric-value" id="tot-market">&mdash;</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Unrealized P&amp;L</div>
+                <div class="metric-value" id="tot-pnl">&mdash;</div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="screener-table-wrapper" id="portfolio-table-wrapper" style="display:none">
+            <table class="screener-table" id="portfolio-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Shares</th>
+                        <th>Avg Entry</th>
+                        <th>Current</th>
+                        <th>Cost Basis</th>
+                        <th>Market Value</th>
+                        <th>Unrealized P&amp;L</th>
+                        <th>Allocation</th>
+                    </tr>
+                </thead>
+                <tbody id="portfolio-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="portfolio-empty" style="display:none">
+            <i class="fa-solid fa-wallet" style="font-size:2rem; margin-bottom:0.5rem"></i>
+            <p>No open positions. Add an open trade in the <a href="journal.html">Journal</a> to see it here.</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="empty-state" id="portfolio-error" style="display:none; color: var(--accent-red)">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; margin-bottom:0.5rem"></i>
+            <p id="portfolio-error-msg">Failed to load portfolio.</p>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            Macropulse &mdash; Quantitative stock signals powered by advanced strategies.
+            Not financial advice.
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/preferences.js"></script>
+    <script src="js/portfolio.js"></script>
+</body>
+</html>

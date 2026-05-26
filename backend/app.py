@@ -19,6 +19,7 @@ from routes.screener import screener_bp
 from routes.backtest import backtest_bp
 from routes.security import security_bp
 from routes.journal import journal_bp
+from routes.portfolio import portfolio_bp
 
 # Kevin Ngo, 4/21/26
 # Define the path to the frontend directory for serving static files.
@@ -52,6 +53,8 @@ def create_app():
     app.register_blueprint(security_bp, url_prefix="/api/v1")
     # Mubashir - US-G: Trading journal CRUD
     app.register_blueprint(journal_bp, url_prefix="/api/v1")
+    # Mubashir - US-J: Portfolio overview of open positions
+    app.register_blueprint(portfolio_bp, url_prefix="/api/v1")
 
     # Person 3 - US14: Legacy /api/ routes with deprecation header for backwards compatibility
     app.register_blueprint(search_bp, url_prefix="/api", name="search_legacy")

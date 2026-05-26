@@ -186,3 +186,13 @@ async function updateJournalTrade(id, updates) {
 async function deleteJournalTrade(id) {
     return fetchJsonWithFallback(`/journal/${id}`, { method: "DELETE" });
 }
+
+// Mubashir - US-J: Portfolio overview of open journal positions
+
+/**
+ * Get aggregated open positions with totals.
+ * GET /api/v1/portfolio
+ */
+async function getPortfolio() {
+    return apiRequest(`/portfolio`);
+}
