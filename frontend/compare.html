@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Yash Patel, 05/25/2026
+Loads saved theme and color-blind preferences before page renders, applying defaults if unavailable-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Stocks - Macropulse</title>
+    <script>
+        try {
+            const prefs = JSON.parse(localStorage.getItem("macropulsePreferences") || "{}");
+            document.documentElement.setAttribute("data-theme", prefs.theme || "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", prefs.colorBlindMode || "default");
+        } catch {
+            document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", "default");
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<!-- Yash Patel, 05/25/2026
+Creates navigation bar with page links, branding, and user profile access button -->
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">
+                <i class="fa-solid fa-chart-line"></i>
+                Macropulse
+            </a>
+            <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="compare.html" class="active">Compare</a>
+                <a href="screener.html">Screener</a>
+                <a href="settings.html">Settings</a>
+                <a href="settings.html" class="profile-button" data-profile-button aria-label="Open settings">
+                    <span class="profile-avatar">
+                        <img data-profile-image alt="Profile picture" hidden>
+                        <span data-profile-initials>G</span>
+                    </span>
+                    <span data-profile-status>Sign in</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+<!-- Yash Patel, 05/25/2026
+ Provides stock comparison form with two ticker inputs and a button to compare-->
+    <section class="search-section compare-hero">
+        <div class="container">
+            <h1>Compare Stocks</h1>
+            <p>Review two tickers side by side with current market metrics.</p>
+
+            <form class="compare-form" id="compare-form">
+                <label class="compare-input-group">
+                    <span>First Symbol</span>
+                    <input type="text" id="compare-symbol-a" value="AAPL" placeholder="AAPL" autocomplete="off" required>
+                </label>
+                <label class="compare-input-group">
+                    <span>Second Symbol</span>
+                    <input type="text" id="compare-symbol-b" value="MSFT" placeholder="MSFT" autocomplete="off" required>
+                </label>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-code-compare"></i>
+                    Compare
+                </button>
+            </form>
+        </div>
+    </section>
+<!-- Yash Patel, 05/25/2026
+ Displays loading indicator and error message when stock comparison data cannot be retrieved-->
+    <main class="container compare-page">
+        <div class="loading-spinner" id="compare-loading" style="display:none">
+            <i class="fa-solid fa-spinner"></i>
+            <span>Loading comparison...</span>
+        </div>
+
+        <div class="error-state compare-error" id="compare-error" style="display:none">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <h2>Comparison Unavailable</h2>
+            <p id="compare-error-message">Enter two valid stock symbols to compare.</p>
+        </div>
+<!-- Yash Patel, 05/25/2026
+ Displays stock comparison results with summary cards and side-by-side metrics table-->
+        <section id="compare-results" style="display:none" aria-live="polite">
+            <div class="compare-summary-grid" id="compare-summary-grid"></div>
+
+            <div class="section-title">
+                <i class="fa-solid fa-table-columns"></i>
+                <span>Side-by-Side Metrics</span>
+            </div>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th id="compare-header-a">Stock A</th>
+                            <th id="compare-header-b">Stock B</th>
+                        </tr>
+                    </thead>
+                    <tbody id="compare-table-body"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+<!-- Yash Patel, 05/25/2026
+ Shows site footer and loads scripts for API access, preferences, and stock comparison-->
+    <footer class="footer">
+        <div class="container">
+            Macropulse &mdash; Quantitative stock signals powered by advanced strategies.
+            Not financial advice.
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/preferences.js"></script>
+    <script src="js/compare.js"></script>
+</body>
+</html>
