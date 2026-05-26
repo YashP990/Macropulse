@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journal - Macropulse</title>
+    <script>
+<!-- Apply color-blind / theme display mode before paint (matches other pages) -->
+        try {
+            const prefs = JSON.parse(localStorage.getItem("macropulsePreferences") || "{}");
+            document.documentElement.setAttribute("data-theme", prefs.theme || "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", prefs.colorBlindMode || "default");
+        } catch {
+            document.documentElement.setAttribute("data-theme", "dark");
+            document.documentElement.setAttribute("data-color-blind-mode", "default");
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="navbar-brand">
+                <i class="fa-solid fa-chart-line"></i>
+                Macropulse
+            </a>
+            <div class="navbar-links">
+                <a href="index.html">Dashboard</a>
+                <a href="screener.html">Screener</a>
+                <a href="journal.html" class="active">Journal</a>
+                <a href="settings.html">Settings</a>
+                <a href="settings.html" class="profile-button" data-profile-button aria-label="Open settings">
+                    <span class="profile-avatar">
+                        <img data-profile-image alt="Profile picture" hidden>
+                        <span data-profile-initials>G</span>
+                    </span>
+                    <span data-profile-status>Sign in</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="search-section" style="padding: 2rem 0 1.5rem">
+        <div class="container">
+            <h1>Trading Journal</h1>
+            <p>Log your trades and track realized and open profit &amp; loss</p>
+        </div>
+    </section>
+
+    <div class="container" style="padding-bottom: 3rem">
+
+        <!-- Stats Bar -->
+        <div class="metrics-grid" id="journal-stats" style="margin-bottom: 1.5rem">
+            <div class="metric-item">
+                <div class="metric-label">Total Trades</div>
+                <div class="metric-value" id="stat-total">0</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Win Rate</div>
+                <div class="metric-value" id="stat-winrate">&mdash;</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Total P&amp;L</div>
+                <div class="metric-value" id="stat-pnl">&mdash;</div>
+            </div>
+            <div class="metric-item">
+                <div class="metric-label">Best / Worst</div>
+                <div class="metric-value" id="stat-bestworst" style="font-size: 1rem">&mdash;</div>
+            </div>
+        </div>
+
+        <!-- New Trade -->
+        <button class="btn btn-primary" id="toggle-form-btn" style="margin-bottom: 1rem">
+            <i class="fa-solid fa-plus"></i> New Trade
+        </button>
+
+        <form class="journal-form" id="trade-form" style="display:none; margin-bottom: 1.5rem">
+            <div class="metrics-grid">
+                <label>Symbol
+                    <input type="text" id="f-symbol" placeholder="AAPL" required>
+                </label>
+                <label>Type
+                    <select id="f-type">
+                        <option value="BUY">BUY (long)</option>
+                        <option value="SELL">SELL (short)</option>
+                    </select>
+                </label>
+                <label>Entry Date
+                    <input type="date" id="f-entry-date" required>
+                </label>
+                <label>Entry Price
+                    <input type="number" id="f-entry-price" step="0.01" min="0" placeholder="150.00" required>
+                </label>
+                <label>Shares
+                    <input type="number" id="f-shares" step="0.0001" min="0" placeholder="10" required>
+                </label>
+                <label style="grid-column: 1 / -1">Notes
+                    <input type="text" id="f-notes" placeholder="Optional">
+                </label>
+            </div>
+            <div style="margin-top: 1rem">
+                <button type="submit" class="btn btn-primary">Save Trade</button>
+                <span id="form-error" style="color: var(--accent-red); margin-left: 1rem"></span>
+            </div>
+        </form>
+
+        <!-- Table -->
+        <div class="screener-table-wrapper" id="journal-table-wrapper" style="display:none">
+            <table class="screener-table" id="journal-table">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Type</th>
+                        <th>Entry Date</th>
+                        <th>Entry</th>
+                        <th>Shares</th>
+                        <th>Exit / Current</th>
+                        <th>P&amp;L</th>
+                        <th>P&amp;L %</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="journal-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="journal-empty" style="display:none">
+            <i class="fa-solid fa-book" style="font-size:2rem; margin-bottom:0.5rem"></i>
+            <p>No trades logged yet. Click "New Trade" to add one.</p>
+        </div>
+
+        <!-- Error State -->
+        <div class="empty-state" id="journal-error" style="display:none; color: var(--accent-red)">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem; margin-bottom:0.5rem"></i>
+            <p id="journal-error-msg">Failed to load journal.</p>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            Macropulse &mdash; Quantitative stock signals powered by advanced strategies.
+            Not financial advice.
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script src="js/preferences.js"></script>
+    <script src="js/journal.js"></script>
+</body>
+</html>

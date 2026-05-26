@@ -1664,3 +1664,47 @@ Changes the theme toggle layout to a single-column grid*/
     padding-top: 0.75rem;
 }
 .weight-total-row span { font-weight: 600; }
+
+/* ===== Trading Journal (US-G) ===== */
+.pnl-positive { color: var(--accent-green); font-weight: 600; }
+.pnl-negative { color: var(--accent-red); font-weight: 600; }
+
+.badge-open {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: var(--radius);
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--accent-green);
+    color: #fff;
+}
+
+.btn-sm {
+    padding: 4px 10px;
+    font-size: 0.78rem;
+}
+
+.journal-form {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+}
+.journal-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.journal-form input,
+.journal-form select {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}

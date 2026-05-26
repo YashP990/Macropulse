@@ -34,4 +34,20 @@ def init_db():
                 PRIMARY KEY (symbol, user_id)
             )
         """)
+        # Mubashir - US-G: Trading journal. exit_* are NULL while a position is open.
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS journal_trades (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                symbol      TEXT    NOT NULL,
+                trade_type  TEXT    NOT NULL,
+                entry_date  TEXT    NOT NULL,
+                entry_price REAL    NOT NULL,
+                exit_date   TEXT,
+                exit_price  REAL,
+                shares      REAL    NOT NULL,
+                notes       TEXT    NOT NULL DEFAULT '',
+                created_at  TEXT    NOT NULL,
+                deleted     INTEGER NOT NULL DEFAULT 0
+            )
+        """)
     conn.close()

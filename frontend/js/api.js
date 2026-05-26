@@ -144,3 +144,45 @@ async function getSignals(symbol) {
 async function getSecurityConfig() {
     return apiRequest(`/security/config`);
 }
+
+// Mubashir - US-G: Trading journal CRUD
+
+/**
+ * Get all journal trades (newest first) with server-computed P&L.
+ * GET /api/v1/journal
+ */
+async function getJournal() {
+    return apiRequest(`/journal`);
+}
+
+/**
+ * Create a new journal trade.
+ * POST /api/v1/journal
+ */
+async function addJournalTrade(trade) {
+    return fetchJsonWithFallback(`/journal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(trade),
+    });
+}
+
+/**
+ * Close an open trade by recording exit price/date.
+ * PUT /api/v1/journal/<id>
+ */
+async function updateJournalTrade(id, updates) {
+    return fetchJsonWithFallback(`/journal/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+    });
+}
+
+/**
+ * Soft-delete a journal trade.
+ * DELETE /api/v1/journal/<id>
+ */
+async function deleteJournalTrade(id) {
+    return fetchJsonWithFallback(`/journal/${id}`, { method: "DELETE" });
+}
