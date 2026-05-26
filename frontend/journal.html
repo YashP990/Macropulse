@@ -107,20 +107,34 @@
             </div>
         </form>
 
+        <!-- Controls: filter, search, export (US-I, US-H) -->
+        <div class="screener-controls" id="journal-controls" style="display:none">
+            <div class="screener-filters">
+                <button class="screener-filter active" data-filter="all">All</button>
+                <button class="screener-filter buy" data-filter="open">Open</button>
+                <button class="screener-filter hold" data-filter="closed">Closed</button>
+            </div>
+            <input type="text" id="journal-search" placeholder="Filter by symbol..." class="journal-search">
+            <button class="btn btn-secondary" id="export-csv-btn">
+                <i class="fa-solid fa-file-csv"></i> Export CSV
+            </button>
+            <span class="screener-count" id="journal-count"></span>
+        </div>
+
         <!-- Table -->
         <div class="screener-table-wrapper" id="journal-table-wrapper" style="display:none">
             <table class="screener-table" id="journal-table">
                 <thead>
                     <tr>
-                        <th>Symbol</th>
-                        <th>Type</th>
-                        <th>Entry Date</th>
-                        <th>Entry</th>
-                        <th>Shares</th>
+                        <th class="sortable" data-col="symbol">Symbol <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="trade_type">Type <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="entry_date">Entry Date <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="entry_price">Entry <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="shares">Shares <i class="fa-solid fa-sort"></i></th>
                         <th>Exit / Current</th>
-                        <th>P&amp;L</th>
-                        <th>P&amp;L %</th>
-                        <th>Status</th>
+                        <th class="sortable" data-col="pnl">P&amp;L <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="pnl_percent">P&amp;L % <i class="fa-solid fa-sort"></i></th>
+                        <th class="sortable" data-col="status">Status <i class="fa-solid fa-sort"></i></th>
                         <th>Notes</th>
                         <th>Actions</th>
                     </tr>

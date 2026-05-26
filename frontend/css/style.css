@@ -1708,3 +1708,12 @@ Changes the theme toggle layout to a single-column grid*/
     color: var(--text-primary);
     font-size: 0.95rem;
 }
+
+.journal-search {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}

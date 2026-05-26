@@ -2,13 +2,20 @@
  * Macropulse Trading Journal (US-G)
  * Loads trades, renders a P&L-colored table, computes summary stats,
  * and handles create / close / delete via the journal API.
+ *
+ * US-H: CSV export of the visible trades.
+ * US-I: filter (all/open/closed), symbol search, and sortable columns.
  */
 
 const els = {};
+let allTrades = [];
+const state = { filter: "all", search: "", sortCol: null, sortDir: 1 };
 
 document.addEventListener("DOMContentLoaded", () => {
     els.tbody = document.getElementById("journal-tbody");
     els.tableWrap = document.getElementById("journal-table-wrapper");
+    els.controls = document.getElementById("journal-controls");
+    els.count = document.getElementById("journal-count");
     els.empty = document.getElementById("journal-empty");
     els.error = document.getElementById("journal-error");
     els.errorMsg = document.getElementById("journal-error-msg");
@@ -20,6 +27,36 @@ document.addEventListener("DOMContentLoaded", () => {
         const showing = els.form.style.display !== "none";
         els.form.style.display = showing ? "none" : "block";
     });
+
+    // US-I: filter pills
+    document.querySelectorAll("#journal-controls .screener-filter").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll("#journal-controls .screener-filter")
+                .forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            state.filter = btn.dataset.filter;
+            renderTable();
+        });
+    });
+
+    // US-I: symbol search
+    document.getElementById("journal-search").addEventListener("input", (e) => {
+        state.search = e.target.value.trim().toUpperCase();
+        renderTable();
+    });
+
+    // US-I: sortable headers
+    document.querySelectorAll("#journal-table th.sortable").forEach((th) => {
+        th.addEventListener("click", () => {
+            const col = th.dataset.col;
+            state.sortDir = state.sortCol === col ? -state.sortDir : 1;
+            state.sortCol = col;
+            renderTable();
+        });
+    });
+
+    // US-H: CSV export
+    document.getElementById("export-csv-btn").addEventListener("click", exportCsv);
 
     // Default the entry-date picker to today.
     document.getElementById("f-entry-date").value = new Date().toISOString().slice(0, 10);
@@ -46,15 +83,43 @@ async function loadJournal() {
     els.error.style.display = "none";
     try {
         const data = await getJournal();
-        const trades = data.trades || [];
-        renderStats(trades);
-        renderTable(trades);
+        allTrades = data.trades || [];
+        renderStats(allTrades);
+        renderTable();
     } catch (err) {
         els.tableWrap.style.display = "none";
+        els.controls.style.display = "none";
         els.empty.style.display = "none";
         els.errorMsg.textContent = err.message || "Failed to load journal.";
         els.error.style.display = "block";
     }
+}
+
+/** US-I: apply filter + search + sort to produce the rows to render. */
+function getVisibleTrades() {
+    let rows = allTrades.slice();
+
+    if (state.filter !== "all") {
+        rows = rows.filter((t) => t.status === state.filter);
+    }
+    if (state.search) {
+        rows = rows.filter((t) => t.symbol.includes(state.search));
+    }
+    if (state.sortCol) {
+        const col = state.sortCol;
+        rows.sort((a, b) => {
+            let av = a[col];
+            let bv = b[col];
+            // Nulls (e.g. open-position P&L with no price) sort last.
+            if (av === null || av === undefined) return 1;
+            if (bv === null || bv === undefined) return -1;
+            if (typeof av === "string") {
+                return av.localeCompare(bv) * state.sortDir;
+            }
+            return (av - bv) * state.sortDir;
+        });
+    }
+    return rows;
 }
 
 function renderStats(trades) {
@@ -81,14 +146,19 @@ function renderStats(trades) {
     }
 }
 
-function renderTable(trades) {
-    if (!trades.length) {
+function renderTable() {
+    if (!allTrades.length) {
         els.tableWrap.style.display = "none";
+        els.controls.style.display = "none";
         els.empty.style.display = "block";
         return;
     }
     els.empty.style.display = "none";
-    els.tableWrap.style.display = "block";
+    els.controls.style.display = "flex";
+
+    const trades = getVisibleTrades();
+    els.count.textContent = `${trades.length} of ${allTrades.length}`;
+    els.tableWrap.style.display = trades.length ? "block" : "none";
 
     els.tbody.innerHTML = "";
     for (const t of trades) {
@@ -129,6 +199,46 @@ function renderTable(trades) {
 
         els.tbody.appendChild(tr);
     }
+}
+
+/** US-H: download the currently visible trades as a CSV file. */
+function exportCsv() {
+    const trades = getVisibleTrades();
+    if (!trades.length) {
+        alert("No trades to export.");
+        return;
+    }
+
+    const cols = [
+        "symbol", "trade_type", "entry_date", "entry_price", "shares",
+        "exit_date", "exit_price", "current_price", "pnl", "pnl_percent",
+        "status", "notes",
+    ];
+    const header = cols.join(",");
+    const lines = trades.map((t) =>
+        cols.map((c) => csvCell(t[c])).join(",")
+    );
+    const csv = [header, ...lines].join("\r\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `macropulse-journal-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function csvCell(value) {
+    if (value === null || value === undefined) return "";
+    const str = String(value);
+    // Quote fields containing commas, quotes, or newlines; escape inner quotes.
+    if (/[",\r\n]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
 }
 
 async function onSubmit(e) {
