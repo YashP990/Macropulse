@@ -10,6 +10,12 @@ const UNDERPERFORMING_CANDIDATES = [
     "META", "NFLX", "AMD", "INTC", "BA", "NKE",
     "DIS", "PYPL", "SNAP", "PFE", "WMT", "JPM",
 ];
+/* Anurag Ravi, date 5/28/2026
+Adds a rotating Stock of the Day section using popular dashboard tickers. */
+const STOCK_OF_THE_DAY_SYMBOLS = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "TSLA",
+    "META", "JPM", "V", "JNJ", "WMT", "DIS",
+];
 
 /* Yash Patel, 04/17/2026
 Add new const variable and call function*/
