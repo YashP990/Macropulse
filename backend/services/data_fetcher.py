@@ -9,6 +9,7 @@ import os
 import time
 import logging
 import requests
+import math
 
 import yfinance as yf
 
@@ -54,6 +55,33 @@ def _yf_ticker(symbol):
     t = yf.Ticker(symbol)
     t.session = _session
     return t
+
+
+def _safe_float(value):
+    try:
+        number = float(value)
+        if math.isfinite(number):
+            return number
+    except (TypeError, ValueError):
+        pass
+    return None
+
+
+def _safe_int(value):
+    number = _safe_float(value)
+    return int(number) if number is not None else None
+
+
+def _round_or_none(value, digits=2):
+    number = _safe_float(value)
+    return round(number, digits) if number is not None else None
+
+
+def _fast_info_value(fast_info, attr):
+    try:
+        return getattr(fast_info, attr, None)
+    except Exception:
+        return None
 
 
 def _yf_history_with_retry(symbol, period, max_retries=3):
@@ -126,7 +154,7 @@ def get_stock_history_dict(symbol, period="1y"):
 
 
 def get_ticker_info_raw(symbol):
-    """Return basic price info: price, change, changePercent."""
+    """Return current price and key company metrics for a ticker."""
     symbol = symbol.upper()
     cache_key = f"info_{symbol}"
 
@@ -138,14 +166,45 @@ def get_ticker_info_raw(symbol):
     last_exc = None
     for attempt in range(3):
         try:
-            fi = _yf_ticker(symbol).fast_info
-            price = fi.last_price
-            prev = fi.previous_close or 0
+            ticker = _yf_ticker(symbol)
+            fi = ticker.fast_info
+            info = {}
+
+            try:
+                info = ticker.info or {}
+            except Exception:
+                logger.info("Fundamental info unavailable for %s; returning price data only", symbol)
+
+            price = _safe_float(_fast_info_value(fi, "last_price"))
+            prev = _safe_float(_fast_info_value(fi, "previous_close"))
+            if price is None:
+                price = _safe_float(info.get("currentPrice") or info.get("regularMarketPrice"))
+            if prev is None:
+                prev = _safe_float(info.get("previousClose") or info.get("regularMarketPreviousClose"))
+
+            if price is None:
+                return None
+
+            change = price - prev if prev else None
             result = {
                 "symbol": symbol,
-                "price": round(float(price), 2),
-                "change": round(float(price - prev), 2) if prev else 0,
-                "changePercent": round(((price - prev) / prev) * 100, 2) if prev else 0,
+                "name": info.get("shortName") or info.get("longName") or symbol,
+                "sector": info.get("sector") or "N/A",
+                "industry": info.get("industry") or "N/A",
+                "price": round(price, 2),
+                "change": round(change, 2) if change is not None else 0,
+                "changePercent": round((change / prev) * 100, 2) if change is not None and prev else 0,
+                "previousClose": _round_or_none(prev),
+                "volume": _safe_int(_fast_info_value(fi, "last_volume") or info.get("volume") or info.get("regularMarketVolume")),
+                "marketCap": _safe_int(_fast_info_value(fi, "market_cap") or info.get("marketCap")),
+                "high52w": _round_or_none(info.get("fiftyTwoWeekHigh") or _fast_info_value(fi, "year_high")),
+                "low52w": _round_or_none(info.get("fiftyTwoWeekLow") or _fast_info_value(fi, "year_low")),
+                "pe_ratio": _round_or_none(info.get("trailingPE")),
+                "forward_pe": _round_or_none(info.get("forwardPE")),
+                "trailingPE": _round_or_none(info.get("trailingPE")),
+                "forwardPE": _round_or_none(info.get("forwardPE")),
+                "returnOnEquity": _round_or_none(info.get("returnOnEquity"), digits=4),
+                "profitMargins": _round_or_none(info.get("profitMargins"), digits=4),
             }
             _cache_set(cache_key, result)
             return result
