@@ -1130,236 +1130,6 @@ Creates a spaced grid layout for the color blindness settings section and toggle
     border-radius: var(--radius);
 }
 
-.modal-open {
-    overflow: hidden;
-}
-
-.modal-backdrop {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    display: grid;
-    place-items: center;
-    padding: 24px;
-    background: rgba(13, 17, 23, 0.72);
-    backdrop-filter: blur(4px);
-}
-
-.modal-backdrop[hidden] {
-    display: none;
-}
-
-.modal-panel {
-    position: relative;
-    width: min(720px, 100%);
-    max-height: calc(100vh - 48px);
-    overflow-y: auto;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
-    padding: 24px;
-}
-
-.modal-close {
-    position: absolute;
-    top: 14px;
-    right: 14px;
-    display: inline-grid;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: color var(--transition), border-color var(--transition);
-}
-
-.modal-close:hover {
-    color: var(--text-primary);
-    border-color: var(--accent-blue);
-}
-
-.modal-header {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-    padding-right: 44px;
-    margin-bottom: 20px;
-}
-
-.modal-header > i {
-    color: var(--accent-blue);
-    font-size: 1.25rem;
-    margin-top: 4px;
-}
-
-.modal-header h2 {
-    font-size: 1.35rem;
-    margin-bottom: 4px;
-}
-
-.modal-header p {
-    color: var(--text-secondary);
-    font-size: 0.92rem;
-}
-
-.investment-survey-modal .settings-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 16px;
-}
-
-.investment-survey-modal .preference-toggle,
-.investment-survey-modal .settings-actions,
-.investment-survey-modal .settings-feedback {
-    grid-column: 1 / -1;
-}
-
-.investment-recommendation {
-    display: grid;
-    gap: 10px;
-    margin-top: 18px;
-    padding: 18px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-}
-
-.investment-recommendation[hidden] {
-    display: none;
-}
-
-.recommendation-label {
-    color: var(--accent-blue);
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
-
-.investment-recommendation h3 {
-    font-size: 1.05rem;
-}
-
-.recommendation-chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.recommendation-chips span {
-    color: var(--text-primary);
-    background: var(--accent-blue-soft);
-    border: 1px solid rgba(88, 166, 255, 0.28);
-    border-radius: 999px;
-    padding: 5px 10px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.recommendation-symbols {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-}
-
-.recommendation-symbol-card {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 12px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-}
-
-.recommendation-symbol-details {
-    display: grid;
-    gap: 3px;
-}
-
-.recommendation-symbol-card strong {
-    color: var(--accent-blue);
-    font-size: 1rem;
-}
-
-.recommendation-symbol-card small {
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    line-height: 1.35;
-}
-
-.recommendation-symbol-actions {
-    display: flex;
-    gap: 8px;
-    flex: 0 0 auto;
-}
-
-.recommendation-symbol-actions .btn {
-    padding: 7px 10px;
-    font-size: 0.8rem;
-}
-
-.recommendation-add-all {
-    grid-column: 1 / -1;
-    justify-content: center;
-}
-
-.investment-recommendation small {
-    color: var(--text-muted);
-    font-size: 0.8rem;
-}
-
-
-.security-status-list {
-    display: grid;
-    gap: 10px;
-}
-
-.security-status-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 14px 16px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-primary);
-    font-size: 0.92rem;
-}
-
-.security-status-row.is-loading,
-.security-status-row.is-error {
-    color: var(--text-secondary);
-}
-
-.security-status-badge {
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.security-status-badge.configured {
-    background: var(--buy-bg);
-    color: var(--accent-green);
-}
-
-.security-status-badge.missing {
-    background: var(--sell-bg);
-    color: var(--accent-red);
-}
-
-.security-status-badge.no_key_needed {
-    background: var(--hold-bg);
-    color: var(--accent-yellow);
-}
-
 .reset-preferences-card {
     display: grid;
     gap: 14px;
@@ -1430,14 +1200,6 @@ Creates a spaced grid layout for the color blindness settings section and toggle
     }
 
     .settings-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .investment-survey-modal .settings-form {
-        grid-template-columns: 1fr;
-    }
-
-    .recommendation-symbols {
         grid-template-columns: 1fr;
     }
 
@@ -1538,6 +1300,162 @@ Changes the theme toggle layout to a single-column grid*/
 }
 .news-publisher { font-weight: 500; color: var(--accent-blue); }
 
+/* ===== Stock Comparison ===== */
+.compare-hero {
+    padding: 36px 0 28px;
+}
+
+.compare-form {
+    max-width: 760px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.compare-input-group {
+    display: grid;
+    gap: 6px;
+    text-align: left;
+}
+
+.compare-input-group span {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.compare-input-group input {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 1rem;
+    padding: 10px 12px;
+    text-transform: uppercase;
+}
+
+.compare-input-group input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+}
+
+.compare-page {
+    min-height: 420px;
+}
+
+.compare-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.comparison-summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.comparison-summary-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.comparison-summary-header .ticker {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+.comparison-summary-header .stock-name {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+}
+
+.comparison-summary-header a {
+    color: var(--text-muted);
+}
+
+.comparison-summary-card .price {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.comparison-summary-card .change {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.comparison-table-wrapper {
+    overflow-x: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 40px;
+}
+
+.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.comparison-table th,
+.comparison-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+}
+
+.comparison-table tr:last-child th,
+.comparison-table tr:last-child td {
+    border-bottom: none;
+}
+
+.comparison-table thead th {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.comparison-table tbody th {
+    color: var(--text-secondary);
+    font-weight: 600;
+    width: 28%;
+}
+
+.comparison-table tbody td {
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+.comparison-table tbody td.positive {
+    color: var(--accent-green);
+}
+
+.comparison-table tbody td.negative {
+    color: var(--accent-red);
+}
+
+.compare-error {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+
 /* ===== Mubashir - US-C: Screener ===== */
 .screener-controls {
     display: flex;
@@ -1614,106 +1532,16 @@ Changes the theme toggle layout to a single-column grid*/
 .positive { color: var(--accent-green); }
 .negative { color: var(--accent-red); }
 
-/* ===== Mubashir - US-E: Backtest Section ===== */
-.backtest-controls { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
-.backtest-summary {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.5rem;
-    margin-bottom: 1rem;
-}
-.backtest-stat { display: flex; flex-direction: column; gap: 0.25rem; }
-.backtest-stat-label { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
-.backtest-stat-value { font-size: 1.25rem; font-weight: 600; color: var(--text-primary); }
+@media (max-width: 768px) {
+    .compare-form {
+        grid-template-columns: 1fr;
+    }
 
-/* ===== Mubashir - US-F: Strategy Weight Sliders ===== */
-.weight-slider-row { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
-.weight-slider-row label { display: flex; justify-content: space-between; font-size: 0.9rem; color: var(--text-primary); }
-.weight-value { font-weight: 600; color: var(--accent-blue); }
-.weight-slider-row input[type=range] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 6px;
-    background: var(--bg-tertiary);
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-}
-.weight-slider-row input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--accent-blue);
-    cursor: pointer;
-    border: 2px solid var(--bg-primary);
-    transition: background var(--transition);
-}
-.weight-slider-row input[type=range]:hover::-webkit-slider-thumb { background: #79b8ff; }
-.weight-total-row {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.75rem;
-    border-top: 1px solid var(--border);
-    padding-top: 0.75rem;
-}
-.weight-total-row span { font-weight: 600; }
+    .compare-form .btn {
+        justify-content: center;
+    }
 
-/* ===== Trading Journal (US-G) ===== */
-.pnl-positive { color: var(--accent-green); font-weight: 600; }
-.pnl-negative { color: var(--accent-red); font-weight: 600; }
-
-.badge-open {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: var(--radius);
-    font-size: 0.72rem;
-    font-weight: 600;
-    background: var(--accent-green);
-    color: #fff;
-}
-
-.btn-sm {
-    padding: 4px 10px;
-    font-size: 0.78rem;
-}
-
-.journal-form {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 20px;
-}
-.journal-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.journal-form input,
-.journal-form select {
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 8px 10px;
-    color: var(--text-primary);
-    font-size: 0.95rem;
-}
-
-.journal-search {
-    background: var(--bg-primary);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 6px 10px;
-    color: var(--text-primary);
-    font-size: 0.9rem;
+    .compare-summary-grid {
+        grid-template-columns: 1fr;
+    }
 }
