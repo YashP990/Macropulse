@@ -1545,3 +1545,59 @@ Changes the theme toggle layout to a single-column grid*/
         grid-template-columns: 1fr;
     }
 }
+
+/* ===== Recent Activity Feed ===== */
+.recent-activity-section {
+    margin-top: 2rem;
+}
+
+.recent-activity-feed {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.9rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: transform var(--transition), border-color var(--transition), background var(--transition);
+}
+
+.activity-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-blue);
+    background: var(--bg-secondary);
+}
+
+.activity-icon {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: rgba(88, 166, 255, 0.12);
+    color: var(--accent-blue);
+}
+
+.activity-item strong,
+.activity-item small {
+    display: block;
+}
+
+.activity-item small {
+    margin-top: 0.2rem;
+    color: var(--text-muted);
+}
+
+.recent-activity-empty {
+    grid-column: 1 / -1;
+}

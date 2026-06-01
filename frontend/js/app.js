@@ -25,6 +25,7 @@ const SAVED_STOCKS_KEY = "macropulseSavedStocks";
  * Anurag Ravi 4/30/2026
  */
 const RECENT_SEARCHES_KEY = "macropulseRecentSearches";
+const RECENT_COMPARISONS_KEY = "macropulseRecentComparisons";
 const MAX_RECENT_SEARCHES = 5;
 const INVESTMENT_SURVEY_SEEN_KEY = "macropulseInvestmentSurveySeen";
 
@@ -133,6 +134,8 @@ document.addEventListener("DOMContentLoaded", () => {
     applyDashboardPreferences();
     initInvestmentSurveyModal();
     initSearch();
+    initClearRecentSearches();
+    renderRecentActivityFeed();
     loadTrendingStocks();
     loadUnderperformingStocks();
     loadWatchlistStocks();
@@ -462,6 +465,7 @@ function saveSymbolsToWatchlist(symbols) {
 
     localStorage.setItem(SAVED_STOCKS_KEY, JSON.stringify(next));
     loadSavedStocks();
+    renderRecentActivityFeed();
 }
 
 /* Yash Patel, 04/27/2026
@@ -552,6 +556,7 @@ function saveRecentSearch(symbol) {
         RECENT_SEARCHES_KEY,
         JSON.stringify(recent.slice(0, MAX_RECENT_SEARCHES))
     );
+    renderRecentActivityFeed();
 }
 /* Anurag Ravi, 5/7/2026
 Clears recent search history and resets the search dropdown on the dashboard. */
@@ -572,9 +577,69 @@ function initClearRecentSearches() {
         }
 
         if (input) input.focus();
+        renderRecentActivityFeed();
     });
 }
 
+
+function getRecentComparisons() {
+    try {
+        const comparisons = JSON.parse(localStorage.getItem(RECENT_COMPARISONS_KEY) || "[]");
+        return Array.isArray(comparisons)
+            ? comparisons.filter((item) => item && item.symbolA && item.symbolB).slice(0, 3)
+            : [];
+    } catch {
+        return [];
+    }
+}
+
+function renderRecentActivityFeed() {
+    const feed = document.getElementById("recent-activity-feed");
+    if (!feed) return;
+
+    const activities = [
+        ...getRecentSearches().slice(0, 3).map((symbol) => ({
+            icon: "fa-magnifying-glass",
+            title: `Searched ${symbol}`,
+            meta: "Recent stock lookup",
+            href: `stock.html?symbol=${encodeURIComponent(symbol)}`,
+        })),
+        ...getSavedStocks().slice(0, 3).map((symbol) => ({
+            icon: "fa-star",
+            title: `Saved ${symbol}`,
+            meta: "Watchlist item",
+            href: `stock.html?symbol=${encodeURIComponent(symbol)}`,
+        })),
+        ...getRecentComparisons().map((comparison) => ({
+            icon: "fa-code-compare",
+            title: `${comparison.symbolA} vs ${comparison.symbolB}`,
+            meta: "Recent comparison",
+            href: `compare.html?symbolA=${encodeURIComponent(comparison.symbolA)}&symbolB=${encodeURIComponent(comparison.symbolB)}`,
+        })),
+    ].slice(0, 6);
+
+    if (!activities.length) {
+        feed.innerHTML = `
+            <div class="empty-state recent-activity-empty">
+                <i class="fa-regular fa-clock"></i>
+                <p>Search, compare, or star stocks to build your personal activity feed.</p>
+            </div>
+        `;
+        return;
+    }
+
+    feed.innerHTML = activities
+        .map((activity) => `
+            <a class="activity-item" href="${activity.href}">
+                <span class="activity-icon"><i class="fa-solid ${activity.icon}"></i></span>
+                <span>
+                    <strong>${activity.title}</strong>
+                    <small>${activity.meta}</small>
+                </span>
+            </a>
+        `)
+        .join("");
+}
 function renderRecentSearches(dropdown) {
     const recent = getRecentSearches();
     selectedSearchIndex = -1;
@@ -858,6 +923,7 @@ function removeSavedStock(symbol) {
     const current = getSavedStocks().filter((s) => s !== normalizedSymbol);
     localStorage.setItem(SAVED_STOCKS_KEY, JSON.stringify(current));
     loadSavedStocks();
+    renderRecentActivityFeed();
 }
 
 window.removeSavedStock = removeSavedStock;
@@ -900,3 +966,4 @@ function renderStockCard(data) {
         </div>
     `;
 }
+
