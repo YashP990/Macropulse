@@ -260,8 +260,29 @@ def get_ticker_fundamentals(symbol):
     return {}
 
 
+def _iso_to_epoch(value):
+    """Best-effort ISO-8601 timestamp -> Unix epoch seconds; 0 on failure."""
+    if not value:
+        return 0
+    if isinstance(value, (int, float)):
+        return int(value)
+    try:
+        from datetime import datetime
+        # yfinance returns e.g. "2026-05-31T11:44:34Z"; fromisoformat needs +00:00
+        normalized = str(value).replace("Z", "+00:00")
+        return int(datetime.fromisoformat(normalized).timestamp())
+    except Exception:
+        return 0
+
+
 def get_ticker_news(symbol):
-    """Return list of recent news articles for a symbol."""
+    """Return list of recent news articles for a symbol.
+
+    yfinance changed its news payload to nest everything under `content`; the
+    old flat keys (title/publisher/link/providerPublishTime) no longer exist
+    and were returning empty strings. This reads the new schema while still
+    falling back to the legacy keys for older yfinance versions.
+    """
     symbol = symbol.upper()
     cache_key = f"news_{symbol}"
 
@@ -274,11 +295,38 @@ def get_ticker_news(symbol):
         articles = []
         for item in raw[:8]:
             try:
+                content = item.get("content") or {}
+
+                title = content.get("title") or item.get("title", "")
+
+                provider = content.get("provider") or {}
+                publisher = (
+                    provider.get("displayName")
+                    or item.get("publisher", "")
+                )
+
+                click = content.get("clickThroughUrl") or {}
+                canonical = content.get("canonicalUrl") or {}
+                link = (
+                    click.get("url")
+                    or canonical.get("url")
+                    or item.get("link", "")
+                )
+
+                published = (
+                    _iso_to_epoch(content.get("pubDate"))
+                    or _iso_to_epoch(content.get("displayTime"))
+                    or item.get("providerPublishTime", 0)
+                )
+
+                if not title or not link:
+                    continue  # skip malformed entries rather than render blanks
+
                 articles.append({
-                    "title": item.get("title", ""),
-                    "publisher": item.get("publisher", ""),
-                    "link": item.get("link", ""),
-                    "published": item.get("providerPublishTime", 0),
+                    "title": title,
+                    "publisher": publisher,
+                    "link": link,
+                    "published": published,
                 })
             except Exception:
                 continue
