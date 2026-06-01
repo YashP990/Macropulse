@@ -5,12 +5,17 @@
 
 const DEFAULT_SYMBOL_A = "AAPL";
 const DEFAULT_SYMBOL_B = "MSFT";
+const SAVED_STOCKS_KEY = "macropulseSavedStocks";
+const RECENT_COMPARISONS_KEY = "macropulseRecentComparisons";
+const MAX_RECENT_COMPARISONS = 5;
 
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const symbolAInput = document.getElementById("compare-symbol-a");
     const symbolBInput = document.getElementById("compare-symbol-b");
     const form = document.getElementById("compare-form");
+    const watchlistButton = document.getElementById("load-watchlist-compare");
+    const watchlistFeedback = document.getElementById("compare-watchlist-feedback");
 
     symbolAInput.value = normalizeSymbol(params.get("symbolA") || symbolAInput.value || DEFAULT_SYMBOL_A);
     symbolBInput.value = normalizeSymbol(params.get("symbolB") || symbolBInput.value || DEFAULT_SYMBOL_B);
@@ -19,6 +24,26 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         loadComparison(symbolAInput.value, symbolBInput.value, true);
     });
+
+    if (watchlistButton) {
+        watchlistButton.addEventListener("click", () => {
+            const savedSymbols = getSavedCompareSymbols();
+
+            if (savedSymbols.length < 2) {
+                if (watchlistFeedback) {
+                    watchlistFeedback.textContent = "Save at least two stocks to your watchlist first.";
+                }
+                return;
+            }
+
+            symbolAInput.value = savedSymbols[0];
+            symbolBInput.value = savedSymbols[1];
+            if (watchlistFeedback) {
+                watchlistFeedback.textContent = `Loaded ${savedSymbols[0]} and ${savedSymbols[1]} from your watchlist.`;
+            }
+            loadComparison(symbolAInput.value, symbolBInput.value, true);
+        });
+    }
 
     [symbolAInput, symbolBInput].forEach((input) => {
         input.addEventListener("change", () => {
@@ -51,6 +76,7 @@ async function loadComparison(rawSymbolA, rawSymbolB, updateUrl) {
     try {
         const [stockA, stockB] = await Promise.all([getStock(symbolA), getStock(symbolB)]);
         renderComparison(stockA, stockB);
+        saveRecentComparison(symbolA, symbolB);
 
         if (updateUrl) {
             const nextUrl = `compare.html?symbolA=${encodeURIComponent(symbolA)}&symbolB=${encodeURIComponent(symbolB)}`;
@@ -117,6 +143,41 @@ function renderSummaryCard(stock) {
     `;
 }
 
+
+function getSavedCompareSymbols() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(SAVED_STOCKS_KEY) || "[]");
+        if (!Array.isArray(saved)) return [];
+
+        return saved
+            .map((symbol) => normalizeSymbol(symbol))
+            .filter((symbol, index, arr) => symbol && arr.indexOf(symbol) === index);
+    } catch {
+        return [];
+    }
+}
+
+function saveRecentComparison(symbolA, symbolB) {
+    const comparison = {
+        symbolA: normalizeSymbol(symbolA),
+        symbolB: normalizeSymbol(symbolB),
+        savedAt: new Date().toISOString(),
+    };
+
+    if (!comparison.symbolA || !comparison.symbolB || comparison.symbolA === comparison.symbolB) return;
+
+    try {
+        const recent = JSON.parse(localStorage.getItem(RECENT_COMPARISONS_KEY) || "[]");
+        const deduped = Array.isArray(recent)
+            ? recent.filter((item) => !(item.symbolA === comparison.symbolA && item.symbolB === comparison.symbolB))
+            : [];
+
+        deduped.unshift(comparison);
+        localStorage.setItem(RECENT_COMPARISONS_KEY, JSON.stringify(deduped.slice(0, MAX_RECENT_COMPARISONS)));
+    } catch {
+        localStorage.setItem(RECENT_COMPARISONS_KEY, JSON.stringify([comparison]));
+    }
+}
 function setComparisonLoading(isLoading) {
     document.getElementById("compare-loading").style.display = isLoading ? "flex" : "none";
 }
@@ -171,3 +232,4 @@ function formatChange(stock) {
 
     return `${sign}${dollars}${percentText}`;
 }
+
