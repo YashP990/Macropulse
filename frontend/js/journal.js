@@ -182,7 +182,7 @@ function renderTable() {
         const tagHtml = renderTagChips(getTradeTags(t));
 
         tr.innerHTML = `
-            <td><strong>${t.symbol}</strong></td>
+            <td><a href="stock.html?symbol=${encodeURIComponent(t.symbol)}"><strong>${t.symbol}</strong></a></td>
             <td>${t.trade_type}</td>
             <td>${t.entry_date}</td>
             <td>$${t.entry_price.toFixed(2)}</td>
