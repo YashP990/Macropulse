@@ -7,9 +7,10 @@
  * US-I: filter (all/open/closed), symbol search, and sortable columns.
  */
 
+const JOURNAL_TAGS_KEY = "macropulseJournalTags";
 const els = {};
 let allTrades = [];
-const state = { filter: "all", search: "", sortCol: null, sortDir: 1 };
+const state = { filter: "all", search: "", tag: "", sortCol: null, sortDir: 1 };
 
 document.addEventListener("DOMContentLoaded", () => {
     els.tbody = document.getElementById("journal-tbody");
@@ -42,6 +43,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // US-I: symbol search
     document.getElementById("journal-search").addEventListener("input", (e) => {
         state.search = e.target.value.trim().toUpperCase();
+        renderTable();
+    });
+
+    document.getElementById("journal-tag-filter").addEventListener("input", (e) => {
+        state.tag = normalizeTag(e.target.value);
         renderTable();
     });
 
@@ -103,7 +109,13 @@ function getVisibleTrades() {
         rows = rows.filter((t) => t.status === state.filter);
     }
     if (state.search) {
-        rows = rows.filter((t) => t.symbol.includes(state.search));
+        rows = rows.filter((t) => {
+            const tags = getTradeTags(t).join(" ").toUpperCase();
+            return t.symbol.includes(state.search) || tags.includes(state.search);
+        });
+    }
+    if (state.tag) {
+        rows = rows.filter((t) => getTradeTags(t).some((tag) => tag.includes(state.tag)));
     }
     if (state.sortCol) {
         const col = state.sortCol;
@@ -167,6 +179,7 @@ function renderTable() {
         const pnlPct = t.pnl_percent === null || t.pnl_percent === undefined
             ? "—"
             : `${t.pnl_percent.toFixed(2)}%`;
+        const tagHtml = renderTagChips(getTradeTags(t));
 
         tr.innerHTML = `
             <td><strong>${t.symbol}</strong></td>
@@ -178,6 +191,7 @@ function renderTable() {
             <td class="${pnlClass(t.pnl)}">${fmtMoney(t.pnl)}</td>
             <td class="${pnlClass(t.pnl)}">${pnlPct}</td>
             <td>${t.status === "open" ? '<span class="badge-open">OPEN</span>' : "Closed"}</td>
+            <td>${tagHtml}</td>
             <td>${t.notes ? escapeHtml(t.notes) : ""}</td>
             <td></td>
         `;
@@ -201,6 +215,66 @@ function renderTable() {
     }
 }
 
+
+function getJournalTagsMap() {
+    try {
+        const map = JSON.parse(localStorage.getItem(JOURNAL_TAGS_KEY) || "{}");
+        return map && typeof map === "object" && !Array.isArray(map) ? map : {};
+    } catch {
+        return {};
+    }
+}
+
+function saveJournalTagsMap(map) {
+    localStorage.setItem(JOURNAL_TAGS_KEY, JSON.stringify(map));
+}
+
+function normalizeTag(tag) {
+    return String(tag || "")
+        .trim()
+        .toLowerCase()
+        .replace(/^#/, "")
+        .replace(/[^a-z0-9_-]/g, "");
+}
+
+function parseTags(value) {
+    return String(value || "")
+        .split(",")
+        .map(normalizeTag)
+        .filter((tag, index, arr) => tag && arr.indexOf(tag) === index)
+        .slice(0, 6);
+}
+
+function getTradeTags(trade) {
+    if (Array.isArray(trade.tags)) return trade.tags.map(normalizeTag).filter(Boolean);
+    const map = getJournalTagsMap();
+    const tags = map[String(trade.id)] || [];
+    return Array.isArray(tags) ? tags.map(normalizeTag).filter(Boolean) : [];
+}
+
+function saveTradeTags(tradeId, tags) {
+    if (!tradeId) return;
+    const map = getJournalTagsMap();
+    if (tags.length) {
+        map[String(tradeId)] = tags;
+    } else {
+        delete map[String(tradeId)];
+    }
+    saveJournalTagsMap(map);
+}
+
+function removeTradeTags(tradeId) {
+    const map = getJournalTagsMap();
+    delete map[String(tradeId)];
+    saveJournalTagsMap(map);
+}
+
+function renderTagChips(tags) {
+    if (!tags.length) return "";
+    return tags
+        .map((tag) => `<span class="journal-tag">#${escapeHtml(tag)}</span>`)
+        .join("");
+}
 /** US-H: download the currently visible trades as a CSV file. */
 function exportCsv() {
     const trades = getVisibleTrades();
@@ -212,11 +286,11 @@ function exportCsv() {
     const cols = [
         "symbol", "trade_type", "entry_date", "entry_price", "shares",
         "exit_date", "exit_price", "current_price", "pnl", "pnl_percent",
-        "status", "notes",
+        "status", "tags", "notes",
     ];
     const header = cols.join(",");
     const lines = trades.map((t) =>
-        cols.map((c) => csvCell(t[c])).join(",")
+        cols.map((c) => csvCell(c === "tags" ? getTradeTags(t).join("; ") : t[c])).join(",")
     );
     const csv = [header, ...lines].join("\r\n");
 
@@ -253,6 +327,7 @@ async function onSubmit(e) {
         shares: parseFloat(document.getElementById("f-shares").value),
         notes: document.getElementById("f-notes").value.trim(),
     };
+    const tags = parseTags(document.getElementById("f-tags").value);
 
     if (!trade.symbol || !trade.entry_date || !(trade.entry_price > 0) || !(trade.shares > 0)) {
         els.formError.textContent = "Fill in all required fields with positive numbers.";
@@ -260,7 +335,8 @@ async function onSubmit(e) {
     }
 
     try {
-        await addJournalTrade(trade);
+        const savedTrade = await addJournalTrade(trade);
+        saveTradeTags(savedTrade.id, tags);
         els.form.reset();
         document.getElementById("f-entry-date").value = new Date().toISOString().slice(0, 10);
         els.form.style.display = "none";
@@ -290,6 +366,7 @@ async function onDelete(trade) {
     if (!confirm(`Delete ${trade.symbol} trade? This cannot be undone.`)) return;
     try {
         await deleteJournalTrade(trade.id);
+        removeTradeTags(trade.id);
         loadJournal();
     } catch (err) {
         alert(err.message || "Failed to delete trade.");
@@ -301,3 +378,5 @@ function escapeHtml(str) {
     div.textContent = str;
     return div.innerHTML;
 }
+
+

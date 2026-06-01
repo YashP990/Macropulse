@@ -1617,3 +1617,16 @@ Changes the theme toggle layout to a single-column grid*/
     color: var(--text-muted);
     font-size: 0.9rem;
 }
+
+.journal-tag {
+    display: inline-flex;
+    align-items: center;
+    margin: 0.12rem 0.18rem 0.12rem 0;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(88, 166, 255, 0.12);
+    color: var(--accent-blue);
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+}

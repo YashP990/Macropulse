@@ -98,6 +98,9 @@
                 <label>Shares
                     <input type="number" id="f-shares" step="0.0001" min="0" placeholder="10" required>
                 </label>
+                <label>Tags
+                    <input type="text" id="f-tags" placeholder="earnings, swing, long-term">
+                </label>
                 <label style="grid-column: 1 / -1">Notes
                     <input type="text" id="f-notes" placeholder="Optional">
                 </label>
@@ -116,6 +119,7 @@
                 <button class="screener-filter hold" data-filter="closed">Closed</button>
             </div>
             <input type="text" id="journal-search" placeholder="Filter by symbol..." class="journal-search">
+            <input type="text" id="journal-tag-filter" placeholder="Filter by tag..." class="journal-search">
             <button class="btn btn-secondary" id="export-csv-btn">
                 <i class="fa-solid fa-file-csv"></i> Export CSV
             </button>
@@ -136,6 +140,7 @@
                         <th class="sortable" data-col="pnl">P&amp;L <i class="fa-solid fa-sort"></i></th>
                         <th class="sortable" data-col="pnl_percent">P&amp;L % <i class="fa-solid fa-sort"></i></th>
                         <th class="sortable" data-col="status">Status <i class="fa-solid fa-sort"></i></th>
+                        <th>Tags</th>
                         <th>Notes</th>
                         <th>Actions</th>
                     </tr>
@@ -171,3 +176,4 @@
     <script src="js/journal.js"></script>
 </body>
 </html>
+
