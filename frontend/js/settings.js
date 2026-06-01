@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initNotificationControls();
     initDashboardPreferenceControls();
     initPrivacyPreferenceControls();
+    initDataPrivacyCenter();
     initStrategyWeightControls();
     initResetControls();
     renderSettings(getPreferences());
@@ -152,6 +153,7 @@ function initPrivacyPreferenceControls() {
         localStorage.removeItem("macropulseSavedStocks");
         privacyFeedback.textContent = "Saved stocks cleared from this browser.";
         privacyFeedback.classList.add("is-visible");
+        renderDataPrivacyCenter();
     });
 }
 // Mubashir - US-F: Strategy weight sliders with coupled redistribution
@@ -243,6 +245,55 @@ function initStrategyWeightControls() {
     }
 }
 
+function initDataPrivacyCenter() {
+    document.querySelectorAll("[data-clear-storage]").forEach((button) => {
+        button.addEventListener("click", () => {
+            const key = button.dataset.clearStorage;
+            const label = button.closest(".data-privacy-row")?.querySelector("strong")?.textContent || "Local data";
+            localStorage.removeItem(key);
+            renderDataPrivacyCenter();
+
+            const feedback = document.getElementById("data-privacy-feedback");
+            if (feedback) {
+                feedback.textContent = `${label} cleared from this browser.`;
+                feedback.classList.add("is-visible");
+            }
+        });
+    });
+
+    renderDataPrivacyCenter();
+}
+
+function readStoredArrayCount(key) {
+    try {
+        const value = JSON.parse(localStorage.getItem(key) || "[]");
+        return Array.isArray(value) ? value.length : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function readStoredObjectCount(key) {
+    try {
+        const value = JSON.parse(localStorage.getItem(key) || "{}");
+        return value && typeof value === "object" && !Array.isArray(value) ? Object.keys(value).length : 0;
+    } catch {
+        return 0;
+    }
+}
+
+function renderDataPrivacyCenter() {
+    const savedStocks = document.getElementById("saved-stocks-count");
+    const recentSearches = document.getElementById("recent-searches-count");
+    const recentComparisons = document.getElementById("recent-comparisons-count");
+    const journalTags = document.getElementById("journal-tags-count");
+
+    if (savedStocks) savedStocks.textContent = `${readStoredArrayCount("macropulseSavedStocks")} symbols stored`;
+    if (recentSearches) recentSearches.textContent = `${readStoredArrayCount("macropulseRecentSearches")} searches stored`;
+    if (recentComparisons) recentComparisons.textContent = `${readStoredArrayCount("macropulseRecentComparisons")} comparisons stored`;
+    if (journalTags) journalTags.textContent = `${readStoredObjectCount("macropulseJournalTags")} tagged trades stored`;
+}
+
 function initResetControls() {
     const resetButton = document.getElementById("reset-preferences");
     const resetFeedback = document.getElementById("reset-feedback");
@@ -253,6 +304,7 @@ function initResetControls() {
         imageInput.value = "";
         const preferences = resetPreferences();
         renderSettings(preferences);
+        renderDataPrivacyCenter();
         resetFeedback.textContent = "Preferences restored to default settings.";
         resetFeedback.classList.add("is-visible");
     });
@@ -378,3 +430,5 @@ function renderApiKeySecurityStatus(providers) {
         })
         .join("");
 }
+
+

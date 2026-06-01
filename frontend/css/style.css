@@ -1630,3 +1630,29 @@ Changes the theme toggle layout to a single-column grid*/
     font-weight: 600;
     white-space: nowrap;
 }
+
+.data-privacy-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.data-privacy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-secondary);
+}
+
+.data-privacy-row strong,
+.data-privacy-row small {
+    display: block;
+}
+
+.data-privacy-row small {
+    margin-top: 0.2rem;
+    color: var(--text-muted);
+}

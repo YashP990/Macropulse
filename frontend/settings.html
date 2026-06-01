@@ -329,6 +329,47 @@ Color-blind mode selection buttons for switching accessibility display settings 
 
             <div class="settings-panel">
                 <div class="settings-panel-header">
+                    <i class="fa-solid fa-database"></i>
+                    <div>
+                        <h2>Data Privacy Center</h2>
+                        <p>Review and clear browser-stored Macropulse data without touching server-side records.</p>
+                    </div>
+                </div>
+
+                <div class="data-privacy-list" id="data-privacy-list" aria-live="polite">
+                    <div class="data-privacy-row">
+                        <div>
+                            <strong>Saved Stocks</strong>
+                            <small id="saved-stocks-count">0 symbols stored</small>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-clear-storage="macropulseSavedStocks">Clear</button>
+                    </div>
+                    <div class="data-privacy-row">
+                        <div>
+                            <strong>Recent Searches</strong>
+                            <small id="recent-searches-count">0 searches stored</small>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-clear-storage="macropulseRecentSearches">Clear</button>
+                    </div>
+                    <div class="data-privacy-row">
+                        <div>
+                            <strong>Recent Comparisons</strong>
+                            <small id="recent-comparisons-count">0 comparisons stored</small>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-clear-storage="macropulseRecentComparisons">Clear</button>
+                    </div>
+                    <div class="data-privacy-row">
+                        <div>
+                            <strong>Journal Tags</strong>
+                            <small id="journal-tags-count">0 tagged trades stored</small>
+                        </div>
+                        <button type="button" class="btn btn-secondary btn-sm" data-clear-storage="macropulseJournalTags">Clear</button>
+                    </div>
+                </div>
+                <p class="settings-feedback" id="data-privacy-feedback" role="status" aria-live="polite"></p>
+            </div>
+            <div class="settings-panel">
+                <div class="settings-panel-header">
                     <i class="fa-solid fa-rotate-left"></i>
                     <div>
                         <h2>Reset Preferences</h2>
@@ -365,3 +406,4 @@ Color-blind mode selection buttons for switching accessibility display settings 
     <script src="js/settings.js"></script>
 </body>
 </html>
+
