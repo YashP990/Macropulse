@@ -159,40 +159,133 @@ async function getJournal() {
  * Create a new journal trade.
  * POST /api/v1/journal
  */
-async function addJournalTrade(trade) {
-    return fetchJsonWithFallback(`/journal`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(trade),
-    });
+/**
+ * Macropulse API Client
+ * Fetch wrapper for all backend calls with error handling and loading states.
+ */
+
+// Person 3 - US14: Prefer versioned /api/v1 endpoint, but fall back to legacy /api
+const API_BASES = [];
+const configuredApiBase = window.APP_CONFIG && window.APP_CONFIG.apiBase;
+
+if (configuredApiBase) {
+    API_BASES.push(configuredApiBase);
+} else {
+    API_BASES.push(`${window.location.origin}/api/v1`, `${window.location.origin}/api`);
+}
+
+async function fetchJsonWithFallback(endpoint, options = {}) {
+    let lastError = null;
+
+    for (const base of API_BASES) {
+        const response = await fetch(`${base}${endpoint}`, options);
+
+        if (response.ok) {
+            return response.json();
+        }
+
+        const errorData = await response.json().catch(() => ({}));
+        const error = new Error(errorData.error || `HTTP ${response.status}`);
+        error.status = response.status;
+        lastError = error;
+
+        // If this base is missing the route entirely, try the next compatible base.
+        if (response.status === 404) {
+            continue;
+        }
+
+        throw error;
+    }
+
+    throw lastError || new Error("Request failed");
+}
+
+async function apiRequest(endpoint) {
+    return fetchJsonWithFallback(endpoint);
 }
 
 /**
- * Close an open trade by recording exit price/date.
- * PUT /api/v1/journal/<id>
+ * Search stocks by query string.
+ * GET /api/search?q=<query>
  */
-async function updateJournalTrade(id, updates) {
-    return fetchJsonWithFallback(`/journal/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-    });
+async function searchStocks(query) {
+    if (!query || query.trim().length === 0) return { results: [] };
+    return apiRequest(`/search?q=${encodeURIComponent(query.trim())}`);
 }
 
 /**
- * Soft-delete a journal trade.
- * DELETE /api/v1/journal/<id>
+ * Get current stock info.
+ * GET /api/stock/<symbol>
  */
-async function deleteJournalTrade(id) {
-    return fetchJsonWithFallback(`/journal/${id}`, { method: "DELETE" });
+async function getStock(symbol) {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}`);
 }
 
-// Mubashir - US-J: Portfolio overview of open journal positions
+/**
+ * Get historical OHLCV data.
+ * GET /api/stock/<symbol>/history?period=1y
+ */
+async function getStockHistory(symbol, period = "1y") {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/history?period=${period}`);
+}
 
 /**
- * Get aggregated open positions with totals.
- * GET /api/v1/portfolio
+ *
+ * GET /api/v1/signals/<symbol>
  */
-async function getPortfolio() {
-    return apiRequest(`/portfolio`);
+async function getSignals(symbol) {
+    return apiRequest(`/signals/${encodeURIComponent(symbol)}`);
+}
+
+/**
+ * Get signal history for a stock.
+ * GET /api/v1/signals/<symbol>/history
+ */
+async function getSignalHistory(symbol) {
+    return apiRequest(`/signals/${encodeURIComponent(symbol)}/history`);
+}
+
+/**
+ * Get the server-side watchlist.
+ * GET /api/v1/watchlist
+ */
+async function getWatchlist() {
+    return apiRequest(`/watchlist`);
+}
+
+/**
+ * Add a symbol to the server-side watchlist.
+ * POST /api/v1/watchlist/<symbol>
+ */
+async function addToWatchlist(symbol) {
+    return fetchJsonWithFallback(`/watchlist/${encodeURIComponent(symbol)}`, { method: "POST" });
+}
+
+/**
+ * Remove a symbol from the server-side watchlist.
+ * DELETE /api/v1/watchlist/<symbol>
+ */
+async function removeFromWatchlist(symbol) {
+    return fetchJsonWithFallback(`/watchlist/${encodeURIComponent(symbol)}`, { method: "DELETE" });
+}
+
+// Mubashir - US-A: Get enriched fundamentals for the stock detail page
+async function getStockFundamentals(symbol) {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/fundamentals`);
+}
+
+// Mubashir - US-B: Get recent news articles for a stock
+async function getStockNews(symbol) {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/news`);
+}
+
+/*Yash Patel, 06/01/2026
+Get stocks with confidence values close to the current stock*/
+async function getSimilarStocks(symbol) {
+    return apiRequest(`/stock/${encodeURIComponent(symbol)}/similar`);
+}
+
+// Mubashir - US-C: Run stock screener across the universe
+async function getScreener() {
+    return apiRequest(`/screener`);
 }

@@ -1,21 +1,19 @@
 /**
+
  * Macropulse - Stock Comparison Logic
  * Fetches two stock symbols and renders key metrics side by side.
  */
+/* Yash Patel, 05/28/2026
+Initializes comparison page, sets default symbols, and binds form and input events */
 
 const DEFAULT_SYMBOL_A = "AAPL";
 const DEFAULT_SYMBOL_B = "MSFT";
-const SAVED_STOCKS_KEY = "macropulseSavedStocks";
-const RECENT_COMPARISONS_KEY = "macropulseRecentComparisons";
-const MAX_RECENT_COMPARISONS = 5;
 
 document.addEventListener("DOMContentLoaded", () => {
     const params = new URLSearchParams(window.location.search);
     const symbolAInput = document.getElementById("compare-symbol-a");
     const symbolBInput = document.getElementById("compare-symbol-b");
     const form = document.getElementById("compare-form");
-    const watchlistButton = document.getElementById("load-watchlist-compare");
-    const watchlistFeedback = document.getElementById("compare-watchlist-feedback");
 
     symbolAInput.value = normalizeSymbol(params.get("symbolA") || symbolAInput.value || DEFAULT_SYMBOL_A);
     symbolBInput.value = normalizeSymbol(params.get("symbolB") || symbolBInput.value || DEFAULT_SYMBOL_B);
@@ -25,26 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
         loadComparison(symbolAInput.value, symbolBInput.value, true);
     });
 
-    if (watchlistButton) {
-        watchlistButton.addEventListener("click", () => {
-            const savedSymbols = getSavedCompareSymbols();
-
-            if (savedSymbols.length < 2) {
-                if (watchlistFeedback) {
-                    watchlistFeedback.textContent = "Save at least two stocks to your watchlist first.";
-                }
-                return;
-            }
-
-            symbolAInput.value = savedSymbols[0];
-            symbolBInput.value = savedSymbols[1];
-            if (watchlistFeedback) {
-                watchlistFeedback.textContent = `Loaded ${savedSymbols[0]} and ${savedSymbols[1]} from your watchlist.`;
-            }
-            loadComparison(symbolAInput.value, symbolBInput.value, true);
-        });
-    }
-
     [symbolAInput, symbolBInput].forEach((input) => {
         input.addEventListener("change", () => {
             loadComparison(symbolAInput.value, symbolBInput.value, true);
@@ -53,7 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     loadComparison(symbolAInput.value, symbolBInput.value, false);
 });
-
+/* Yash Patel, 05/28/2026
+Loads stock comparison data, handles validation, errors, rendering, and URL updates */
 async function loadComparison(rawSymbolA, rawSymbolB, updateUrl) {
     const symbolA = normalizeSymbol(rawSymbolA);
     const symbolB = normalizeSymbol(rawSymbolB);
@@ -76,7 +55,6 @@ async function loadComparison(rawSymbolA, rawSymbolB, updateUrl) {
     try {
         const [stockA, stockB] = await Promise.all([getStock(symbolA), getStock(symbolB)]);
         renderComparison(stockA, stockB);
-        saveRecentComparison(symbolA, symbolB);
 
         if (updateUrl) {
             const nextUrl = `compare.html?symbolA=${encodeURIComponent(symbolA)}&symbolB=${encodeURIComponent(symbolB)}`;
@@ -91,7 +69,8 @@ async function loadComparison(rawSymbolA, rawSymbolB, updateUrl) {
         setComparisonLoading(false);
     }
 }
-
+/* Yash Patel, 05/28/2026
+Renders full stock comparison view including headers, summary cards, and metric table */
 function renderComparison(stockA, stockB) {
     document.getElementById("compare-results").style.display = "block";
     document.getElementById("compare-header-a").textContent = `${stockA.symbol} (${stockA.name || "Stock A"})`;
@@ -123,7 +102,8 @@ function renderComparison(stockA, stockB) {
         })
         .join("");
 }
-
+/* Yash Patel, 05/28/2026
+Renders stock comparison summary card with price, change, and navigation link */
 function renderSummaryCard(stock) {
     const changeClass = getChangeClass(stock.change);
     return `
@@ -142,74 +122,47 @@ function renderSummaryCard(stock) {
         </article>
     `;
 }
-
-
-function getSavedCompareSymbols() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(SAVED_STOCKS_KEY) || "[]");
-        if (!Array.isArray(saved)) return [];
-
-        return saved
-            .map((symbol) => normalizeSymbol(symbol))
-            .filter((symbol, index, arr) => symbol && arr.indexOf(symbol) === index);
-    } catch {
-        return [];
-    }
-}
-
-function saveRecentComparison(symbolA, symbolB) {
-    const comparison = {
-        symbolA: normalizeSymbol(symbolA),
-        symbolB: normalizeSymbol(symbolB),
-        savedAt: new Date().toISOString(),
-    };
-
-    if (!comparison.symbolA || !comparison.symbolB || comparison.symbolA === comparison.symbolB) return;
-
-    try {
-        const recent = JSON.parse(localStorage.getItem(RECENT_COMPARISONS_KEY) || "[]");
-        const deduped = Array.isArray(recent)
-            ? recent.filter((item) => !(item.symbolA === comparison.symbolA && item.symbolB === comparison.symbolB))
-            : [];
-
-        deduped.unshift(comparison);
-        localStorage.setItem(RECENT_COMPARISONS_KEY, JSON.stringify(deduped.slice(0, MAX_RECENT_COMPARISONS)));
-    } catch {
-        localStorage.setItem(RECENT_COMPARISONS_KEY, JSON.stringify([comparison]));
-    }
-}
+/* Yash Patel, 05/28/2026
+Toggles comparison loading indicator visibility based on loading state */
 function setComparisonLoading(isLoading) {
     document.getElementById("compare-loading").style.display = isLoading ? "flex" : "none";
 }
-
+/* Yash Patel, 05/28/2026
+Displays comparison error message and hides results section */
 function showComparisonError(message) {
     document.getElementById("compare-results").style.display = "none";
     document.getElementById("compare-error").style.display = "block";
     document.getElementById("compare-error-message").textContent = message;
 }
-
+/* Yash Patel, 05/28/2026
+Hides comparison error message element by setting display to none */
 function hideComparisonError() {
     document.getElementById("compare-error").style.display = "none";
 }
-
+/* Yash Patel, 05/28/2026
+Normalizes stock symbol by trimming, uppercasing, and removing whitespace */
 function normalizeSymbol(symbol) {
     return String(symbol || "").trim().toUpperCase().replace(/\s+/g, "");
 }
-
+/* Yash Patel, 05/28/2026
+Returns CSS class based on positive or negative stock change */
 function getChangeClass(change) {
     return Number(change || 0) >= 0 ? "positive" : "negative";
 }
-
+/* Yash Patel, 05/28/2026
+Formats numeric values as currency with two decimal places */
 function formatCurrency(value) {
     const number = Number(value);
     return Number.isFinite(number) ? `$${number.toFixed(2)}` : "N/A";
 }
-
+/* Yash Patel, 05/28/2026
+Formats numeric ratios to two decimal places or returns N/A */
 function formatRatio(value) {
     const number = Number(value);
     return Number.isFinite(number) ? number.toFixed(2) : "N/A";
 }
-
+/* Yash Patel, 05/28/2026
+Formats market capitalization into readable millions, billions, or trillions */
 function formatMarketCap(value) {
     const number = Number(value);
     if (!Number.isFinite(number) || number <= 0) return "N/A";
@@ -218,7 +171,8 @@ function formatMarketCap(value) {
     if (number >= 1e6) return `$${(number / 1e6).toFixed(2)}M`;
     return `$${number.toLocaleString()}`;
 }
-
+/* Yash Patel, 05/28/2026
+ormats stock price change and percentage with proper sign and currency display*/
 function formatChange(stock) {
     const change = Number(stock.change);
     const changePercent = Number(stock.changePercent);
@@ -232,4 +186,3 @@ function formatChange(stock) {
 
     return `${sign}${dollars}${percentText}`;
 }
-

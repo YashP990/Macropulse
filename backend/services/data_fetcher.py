@@ -165,6 +165,8 @@ def get_ticker_info_raw(symbol):
     delay = 2
     last_exc = None
     for attempt in range(3):
+# Yash Patel, 05/28/2026
+# Retrieve stock pricing data and calculate daily price change./
         try:
             ticker = _yf_ticker(symbol)
             fi = ticker.fast_info
@@ -186,6 +188,8 @@ def get_ticker_info_raw(symbol):
                 return None
 
             change = price - prev if prev else None
+# Yash Patel, 05/28/2026
+# Build stock response with pricing and fundamental market metrics.
             result = {
                 "symbol": symbol,
                 "name": info.get("shortName") or info.get("longName") or symbol,

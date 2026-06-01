@@ -1301,6 +1301,8 @@ Changes the theme toggle layout to a single-column grid*/
 .news-publisher { font-weight: 500; color: var(--accent-blue); }
 
 /* ===== Stock Comparison ===== */
+/* Yash Patel, 05/28/2026
+Styles stock comparison form, summary cards, metrics table, and error display. */
 .compare-hero {
     padding: 36px 0 28px;
 }
