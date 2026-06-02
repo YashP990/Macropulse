@@ -654,6 +654,68 @@ Added space below Saved Stocks title*/
     line-height: 1.5;
 }
 
+/* ===== Similar Stocks ===== */
+/* Yash Patel, 06/01/2026
+Styles similar stock cards, grid layout, empty states, and metrics display */
+.similar-stocks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.similar-stock-card {
+    display: grid;
+    gap: 10px;
+    min-height: 142px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    color: var(--text-primary);
+    transition: border-color var(--transition), background var(--transition), transform var(--transition);
+}
+
+.similar-stock-card:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-blue);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.similar-stock-header,
+.similar-stock-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.similar-stock-symbol {
+    color: var(--accent-blue);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.similar-stock-name {
+    min-height: 2.6em;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.35;
+}
+
+.similar-stock-meta {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.similar-stocks-empty {
+    grid-column: 1 / -1;
+    background: var(--bg-card);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+}
+
 /* ===== Metrics Table ===== */
 .metrics-grid {
     display: grid;
@@ -1301,8 +1363,6 @@ Changes the theme toggle layout to a single-column grid*/
 .news-publisher { font-weight: 500; color: var(--accent-blue); }
 
 /* ===== Stock Comparison ===== */
-/* Yash Patel, 05/28/2026
-Styles stock comparison form, summary cards, metrics table, and error display. */
 .compare-hero {
     padding: 36px 0 28px;
 }
@@ -1546,115 +1606,4 @@ Styles stock comparison form, summary cards, metrics table, and error display. *
     .compare-summary-grid {
         grid-template-columns: 1fr;
     }
-}
-
-/* ===== Recent Activity Feed ===== */
-.recent-activity-section {
-    margin-top: 2rem;
-}
-
-.recent-activity-feed {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 0.9rem;
-}
-
-.activity-item {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    padding: 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    color: var(--text-primary);
-    text-decoration: none;
-    transition: transform var(--transition), border-color var(--transition), background var(--transition);
-}
-
-.activity-item:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent-blue);
-    background: var(--bg-secondary);
-}
-
-.activity-icon {
-    width: 42px;
-    height: 42px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    background: rgba(88, 166, 255, 0.12);
-    color: var(--accent-blue);
-}
-
-.activity-item strong,
-.activity-item small {
-    display: block;
-}
-
-.activity-item small {
-    margin-top: 0.2rem;
-    color: var(--text-muted);
-}
-
-.recent-activity-empty {
-    grid-column: 1 / -1;
-}
-
-.compare-watchlist-tools {
-    max-width: 760px;
-    margin: 0.85rem auto 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.85rem;
-    flex-wrap: wrap;
-}
-
-.compare-watchlist-feedback {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.9rem;
-}
-
-.journal-tag {
-    display: inline-flex;
-    align-items: center;
-    margin: 0.12rem 0.18rem 0.12rem 0;
-    padding: 0.18rem 0.5rem;
-    border-radius: 999px;
-    background: rgba(88, 166, 255, 0.12);
-    color: var(--accent-blue);
-    font-size: 0.78rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.data-privacy-list {
-    display: grid;
-    gap: 0.75rem;
-}
-
-.data-privacy-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: 0.9rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg-secondary);
-}
-
-.data-privacy-row strong,
-.data-privacy-row small {
-    display: block;
-}
-
-.data-privacy-row small {
-    margin-top: 0.2rem;
-    color: var(--text-muted);
 }

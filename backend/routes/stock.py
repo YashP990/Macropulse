@@ -3,6 +3,7 @@
 from datetime import datetime, timezone
 from flask import Blueprint, jsonify, make_response, request
 from services.data_fetcher import get_stock_history_dict, get_ticker_info_raw, get_ticker_fundamentals, get_ticker_news
+from strategies.signal_aggregator import get_aggregated_signal
 import re
 
 # Kevin Ngo, 4/11/26 - Stock API routes for Macropulse backend
@@ -23,6 +24,18 @@ PERIOD_ALIASES = {
 
 # Kevin Ngo, 4/11/26 - Regex pattern to validate stock symbols
 SYMBOL_PATTERN = re.compile(r"^[A-Z0-9.\-^=]{1,15}$")
+
+# Yash Patel, 06/01/2026
+# Defines similar stock matching limits and the stock comparison universe.
+SIMILAR_CONFIDENCE_WINDOW = 5
+SIMILAR_STOCK_LIMIT = 3
+SIMILAR_STOCK_UNIVERSE = [
+    "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA",
+    "JPM", "V", "JNJ", "WMT", "PG", "UNH", "XOM", "HD",
+    "MA", "LLY", "AVGO", "ABBV", "PFE", "MRK", "COST", "BAC",
+    "KO", "PEP", "TMO", "ABT", "CSCO", "ACN", "MCD",
+    "DHR", "NKE", "INTC", "AMD", "ORCL",
+]
 
 
 def _normalize_symbol(symbol):
@@ -163,6 +176,64 @@ def stock_history(symbol):
         "period": period,
         "points": len(history),
         "meta": _request_meta(normalized_symbol, period=period),
+    }
+
+    return _response(payload, status=200, cache_seconds=300)
+
+# Yash Patel, 06/01/2026
+# Returns stocks with confidence values similar to the selected stock.
+@stock_bp.route("/stock/<symbol>/similar")
+def similar_stocks(symbol):
+    normalized_symbol = _normalize_symbol(symbol)
+
+    if not normalized_symbol or not SYMBOL_PATTERN.fullmatch(normalized_symbol):
+        return _error(f"Invalid stock symbol '{symbol}'.", status=400)
+
+    current_signal = get_aggregated_signal(normalized_symbol)
+    if current_signal is None:
+        return _error(
+            f"Unable to calculate confidence for '{normalized_symbol}'.",
+            status=404,
+            meta=_request_meta(normalized_symbol),
+        )
+
+    current_confidence = current_signal.get("confidence", 0)
+    candidates = []
+
+    for candidate_symbol in SIMILAR_STOCK_UNIVERSE:
+        if candidate_symbol == normalized_symbol:
+            continue
+
+        try:
+            candidate_signal = get_aggregated_signal(candidate_symbol)
+            if candidate_signal is None:
+                continue
+
+            candidate_confidence = candidate_signal.get("confidence", 0)
+            confidence_delta = abs(candidate_confidence - current_confidence)
+            if confidence_delta > SIMILAR_CONFIDENCE_WINDOW:
+                continue
+
+            info = get_ticker_info_raw(candidate_symbol) or {}
+            candidates.append({
+                "symbol": candidate_symbol,
+                "name": info.get("name") or candidate_symbol,
+                "signal": candidate_signal.get("signal", "HOLD"),
+                "confidence": candidate_confidence,
+                "confidenceDelta": confidence_delta,
+            })
+        except Exception:
+            continue
+
+    candidates.sort(key=lambda item: (item["confidenceDelta"], item["symbol"]))
+
+    payload = {
+        "symbol": normalized_symbol,
+        "confidence": current_confidence,
+        "confidenceWindow": SIMILAR_CONFIDENCE_WINDOW,
+        "count": min(len(candidates), SIMILAR_STOCK_LIMIT),
+        "results": candidates[:SIMILAR_STOCK_LIMIT],
+        "meta": _request_meta(normalized_symbol),
     }
 
     return _response(payload, status=200, cache_seconds=300)
