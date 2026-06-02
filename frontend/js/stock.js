@@ -42,6 +42,7 @@ async function loadStockPage(symbol, defaultPeriod = "1y") {
         loadSignals(symbol);
         loadChart(symbol, defaultPeriod);
         loadSignalHistory(symbol);
+        loadSimilarStocks(symbol)
         loadFundamentals(symbol);
         loadNews(symbol);
         loadBacktest(symbol, "2y");
@@ -405,6 +406,62 @@ function renderSignalHistory(history) {
 
     listEl.innerHTML = `<div class="history-list">${rows}</div>`;
 }
+
+// ===== Similar Stocks =====
+/* Yash Patel, 05/28/2026
+Loads and displays similar stocks with matching confidence and recommendation data */
+async function loadSimilarStocks(symbol) {
+    const loadingEl = document.getElementById("similar-stocks-loading");
+    const listEl = document.getElementById("similar-stocks-list");
+    if (!loadingEl || !listEl) return;
+
+    try {
+        const data = await getSimilarStocks(symbol);
+        loadingEl.style.display = "none";
+        listEl.style.display = "grid";
+
+        if (!data.results || data.results.length < 3) {
+            listEl.innerHTML = `
+                <div class="empty-state similar-stocks-empty">
+                    <p>Not enough stocks matched within ${data.confidenceWindow || 5}% confidence.</p>
+                </div>
+            `;
+            return;
+        }
+
+        renderSimilarStocks(data.results, data.confidence);
+    } catch {
+        if (loadingEl) loadingEl.style.display = "none";
+        if (listEl) {
+            listEl.style.display = "grid";
+            listEl.innerHTML = `<div class="empty-state similar-stocks-empty"><p>Similar stocks unavailable.</p></div>`;
+        }
+    }
+}
+
+function renderSimilarStocks(stocks, currentConfidence) {
+    const listEl = document.getElementById("similar-stocks-list");
+    if (!listEl) return;
+
+    listEl.innerHTML = stocks.slice(0, 3).map((stock) => {
+        const signalLower = (stock.signal || "hold").toLowerCase();
+        const delta = Number(stock.confidenceDelta || Math.abs(stock.confidence - currentConfidence));
+        return `
+            <a class="similar-stock-card" href="stock.html?symbol=${encodeURIComponent(stock.symbol)}">
+                <div class="similar-stock-header">
+                    <span class="similar-stock-symbol">${stock.symbol}</span>
+                    <span class="signal-badge-sm ${signalLower}">${stock.signal || "HOLD"}</span>
+                </div>
+                <div class="similar-stock-name">${stock.name}</div>
+                <div class="similar-stock-meta">
+                    <span>${stock.confidence}% confidence</span>
+                    <span>${delta.toFixed(0)}% away</span>
+                </div>
+            </a>
+        `;
+    }).join("");
+}
+
 
 // ===== Mubashir - US-A: Fundamentals =====
 
